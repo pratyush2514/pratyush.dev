@@ -16,7 +16,7 @@ import { useEffect, useCallback, useState, useRef } from "react";
 
 const RESUME_URL =
   "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/833cc088-1862-449c-b812-21314f3343b3/PratyushRastogiResume-1-1767974097624.pdf";
-const CALCOM_URL = "https://cal.com/pratyush-rastogi-wck12m";
+const CALCOM_URL = "https://cal.com/pratyush-rastogi-wck12m/30min";
 
 const projects = [
   {

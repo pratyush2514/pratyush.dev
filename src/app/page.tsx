@@ -89,10 +89,10 @@ const experience = [
   },
   {
     company: "Full Stack Developer",
-    role: "Technical Lead",
+    role: "Web Developer",
     period: "Oct 2025 - Dec 2025",
     details:
-      "Guided 200+ students through technical project development. Managed sponsorship outreach and smooth event operations for Graphic Era University.",
+      "Implemented a platform for automated Facebook and Instagram management. Features RSS feed posting, admin approval authentication, and End-2-End JWT security and Long Term Support.",
   },
 ];
 

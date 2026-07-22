@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
 interface FloatingConsultButtonProps {
@@ -35,7 +35,7 @@ export const FloatingConsultButton = ({
   ctaButtonText = "Book a call",
   ctaButtonAction = () => console.log("CTA clicked"),
   position = { bottom: "2rem", right: "2rem" },
-}: FloatingConsultButtonProps): JSX.Element => {
+}: FloatingConsultButtonProps): React.JSX.Element => {
   const [isOpen, setIsOpen] = useState(false);
   
   const lgButtonSize = buttonSize || 160;
@@ -47,7 +47,7 @@ export const FloatingConsultButton = ({
     <>
       <AnimatePresence>
         {isOpen && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -59,7 +59,7 @@ export const FloatingConsultButton = ({
 
       <AnimatePresence>
         {isOpen && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
@@ -106,7 +106,7 @@ export const FloatingConsultButton = ({
                 {ctaButtonText}
               </Button>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -114,7 +114,7 @@ export const FloatingConsultButton = ({
         className="fixed z-50"
         style={position}
       >
-        <motion.div
+        <m.div
           className="relative cursor-pointer group"
           style={{
             width: `${smButtonSize}px`,
@@ -124,7 +124,7 @@ export const FloatingConsultButton = ({
           transition={{ duration: 0.3 }}
           onClick={() => setIsOpen(!isOpen)}
         >
-          <motion.div
+          <m.div
             className="absolute inset-0"
             animate={{ rotate: 360 }}
             transition={{
@@ -149,7 +149,7 @@ export const FloatingConsultButton = ({
                 </textPath>
               </text>
             </svg>
-          </motion.div>
+          </m.div>
 
           <div className="absolute inset-0 flex items-center justify-center">
             <div 
@@ -173,7 +173,7 @@ export const FloatingConsultButton = ({
               />
             </div>
           </div>
-        </motion.div>
+        </m.div>
         
         <style>{`
           @media (min-width: 1024px) {

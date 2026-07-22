@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useTheme } from "next-themes";
 import React, { useCallback, useEffect, useState } from "react";
 
@@ -176,7 +176,7 @@ export const ThemeToggleButton = ({
     >
       <span className="sr-only">Toggle theme</span>
       <svg className="size-6" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <motion.g
+        <m.g
           initial={false}
           animate={{ rotate: mounted && isDark ? -180 : 0 }}
           transition={{ ease: "easeInOut", duration: 0.5 }}
@@ -189,8 +189,8 @@ export const ThemeToggleButton = ({
             d="M120 67.5C90.75 67.5 67.5 90.75 67.5 120C67.5 149.25 90.75 172.5 120 172.5"
             className="fill-black dark:fill-white"
           />
-        </motion.g>
-        <motion.path
+        </m.g>
+        <m.path
           initial={false}
           animate={{ rotate: mounted && isDark ? 180 : 0 }}
           transition={{ ease: "easeInOut", duration: 0.5 }}

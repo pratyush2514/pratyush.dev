@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { LazyMotion, domAnimation, m } from "framer-motion";
 import {
   ArrowUpRight,
   Github,
@@ -13,42 +13,73 @@ import {
 import { ThemeToggleButton } from "@/components/theme-toggle";
 import { FloatingConsultButton } from "@/components/floating-consult-button";
 import { useEffect, useCallback, useState, useRef } from "react";
+import type { IconType } from "react-icons";
+import {
+  SiGo,
+  SiPython,
+  SiTypescript,
+  SiPostgresql,
+  SiDocker,
+  SiNextdotjs,
+  SiNodedotjs,
+  SiExpress,
+  SiOpenai,
+  SiSlack,
+  SiReact,
+  SiSpringboot,
+  SiMysql,
+  SiMongodb,
+  SiGraphql,
+  SiStreamlit,
+  SiPandas,
+  SiJsonwebtokens,
+} from "react-icons/si";
+
+// Maps a tag label to its official brand mark (monochrome, inherits currentColor).
+// Tags without a recognized logo simply render as text.
+const techIcons: Record<string, IconType> = {
+  Go: SiGo,
+  Python: SiPython,
+  TypeScript: SiTypescript,
+  PostgreSQL: SiPostgresql,
+  Docker: SiDocker,
+  "Next.js": SiNextdotjs,
+  "Node.js": SiNodedotjs,
+  Express: SiExpress,
+  OpenAI: SiOpenai,
+  Slack: SiSlack,
+  React: SiReact,
+  "Spring Boot": SiSpringboot,
+  MySQL: SiMysql,
+  MongoDB: SiMongodb,
+  GraphQL: SiGraphql,
+  Streamlit: SiStreamlit,
+  Pandas: SiPandas,
+  JWT: SiJsonwebtokens,
+};
 
 const RESUME_URL =
-  "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/833cc088-1862-449c-b812-21314f3343b3/PratyushRastogiResume-1-1767974097624.pdf";
+  "https://nqysiprpmxxombsdvdkh.supabase.co/storage/v1/object/public/portfolio/PratyushRastogiResume.pdf";
 const CALCOM_URL = "https://cal.com/pratyush-rastogi-wck12m/30min";
 
 const projects = [
   {
-    title: "AI System Design Video Generator (Under Development)",
-    role: "[MVP]",
+    title: "Backstop",
+    role: "Creator & Maintainer",
     description:
-      "Automated video generation pipeline using LLMs to translate system architectural diagrams and descriptions into high-quality educational videos.",
-    tags: [
-      "NodeJS",
-      "Java Spring boot",
-      "OpenAI API",
-      "FFmpeg",
-      "Fastify",
-      "Remotion",
-    ],
-    year: "2025",
-    url: "",
+      "The last line of defense between your AI agent and production. An open-source safety gateway that classifies risky PostgreSQL queries via AST parsing, gates destructive writes behind human approval, and restores table snapshots from your own storage.",
+    tags: ["Go", "Python", "TypeScript", "PostgreSQL", "Docker"],
+    year: "2026",
+    url: "https://backstop-iota.vercel.app/",
   },
   {
-    title: "Cloud Simulation Platform (Under Development)",
-    role: "[MVP]",
+    title: "PulseBoard",
+    role: "Full-Stack Engineer",
     description:
-      "A drag-and-drop visual interface for simulating cloud infrastructure scaling, failure modes, and latency distribution across global regions.",
-    tags: [
-      "React",
-      "TypeScript",
-      "React Flow",
-      "DAG Based Architecture",
-      "Java Spring Boot",
-    ],
-    year: "2025",
-    url: "",
+      "Sentiment analysis for Slack conversations. Ingests message streams and surfaces team mood, tone shifts, and engagement signals through a real-time analytics dashboard.",
+    tags: ["Next.js", "Node.js", "Express", "OpenAI", "Slack"],
+    year: "2026",
+    url: "https://sentiment-front-end-next-js.vercel.app/",
   },
   {
     title: "RSS Posting (rssposting.com)",
@@ -88,11 +119,18 @@ const experience = [
       "Delivered end-to-end monitoring workflows using n8n and custom Bash scripts. Integrated real-time Slack alerting via OAuth API for 99.9% uptime awareness.",
   },
   {
-    company: "Full Stack Developer",
+    company: "Freelance Full Stack Developer",
     role: "Web Developer",
     period: "Oct 2025 - Dec 2025",
     details:
       "Implemented a platform for automated Facebook and Instagram management. Features RSS feed posting, admin approval authentication, and End-2-End JWT security and Long Term Support.",
+  },
+  {
+    company: "Wednesday Solutions",
+    role: "Software Engineer I · Full-Time · Pune",
+    period: "Feb 2026 - Apr 2026",
+    details:
+      "Shipped production features across two products: PulseBoard, a real-time Slack sentiment-analysis dashboard, and a Queue Management System (QMS) integrated with LMS platforms like Moodle and Canvas.",
   },
 ];
 
@@ -124,11 +162,14 @@ const skills = [
   },
 ];
 
+// Expo-out cubic bézier, typed as a tuple so framer-motion accepts it.
+const EASE_OUT_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
 const fadeUp = {
   initial: { opacity: 0, y: 30 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true },
-  transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+  transition: { duration: 0.8, ease: EASE_OUT_EXPO },
 };
 
 const staggerContainer = {
@@ -147,19 +188,52 @@ const wordAnimation = {
   whileInView: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.8, ease: EASE_OUT_EXPO },
   },
 };
 
+// Builds an on-the-fly screenshot of a live URL (link-unfurl style, à la X/Slack).
+// Returned image is used directly as an <img src>. Swap this line for a static
+// asset path later if you want zero external dependency.
+const buildPreviewSrc = (url: string) =>
+  `https://api.microlink.io/?url=${encodeURIComponent(
+    url
+  )}&screenshot=true&meta=false&embed=screenshot.url&viewport.width=1280&viewport.height=800&waitUntil=networkidle2`;
+
 const ProjectCard = ({ project, i }: { project: any; i: number }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [opacity, setOpacity] = useState(0);
+  const glowRef = useRef<HTMLDivElement>(null);
+  const [hovered, setHovered] = useState(false);
+  const [previewMounted, setPreviewMounted] = useState(false);
+  const [previewLoaded, setPreviewLoaded] = useState(false);
+  const [previewFailed, setPreviewFailed] = useState(false);
 
+  const previewSrc =
+    project.url && project.preview !== false
+      ? buildPreviewSrc(project.url)
+      : null;
+
+  // Drive the cursor spotlight via a direct style write instead of React state,
+  // so moving the mouse never triggers a re-render (60fps without reconciliation).
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    const container = containerRef.current;
+    const glow = glowRef.current;
+    if (!container || !glow) return;
+    const rect = container.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    glow.style.background = `radial-gradient(600px circle at ${x}px ${y}px, var(--color-border), transparent 40%)`;
+  };
+
+  const handleEnter = () => {
+    if (glowRef.current) glowRef.current.style.opacity = "1";
+    setHovered(true);
+    if (previewSrc) setPreviewMounted(true); // lazy: only fetch once hovered
+  };
+
+  const handleLeave = () => {
+    if (glowRef.current) glowRef.current.style.opacity = "0";
+    setHovered(false);
   };
 
   const handleClick = () => {
@@ -167,24 +241,43 @@ const ProjectCard = ({ project, i }: { project: any; i: number }) => {
     window.open(project.url, "_blank", "noopener,noreferrer");
   };
 
+  const showPreview = hovered && previewLoaded && !previewFailed;
+
   return (
-    <motion.div
+    <m.div
       ref={containerRef}
       key={project.title}
       {...fadeUp}
       transition={{ delay: i * 0.05, ...fadeUp.transition }}
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setOpacity(1)}
-      onMouseLeave={() => setOpacity(0)}
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
       onClick={handleClick}
       className="group relative grid gap-8 bg-bg py-12 transition-colors duration-500 hover:bg-bg-secondary/50 md:grid-cols-12 md:gap-16 overflow-hidden"
     >
+      {previewSrc && previewMounted && (
+        <img
+          src={previewSrc}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          draggable={false}
+          onLoad={() => setPreviewLoaded(true)}
+          onError={() => setPreviewFailed(true)}
+          className={`pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-left-top grayscale transition-opacity duration-700 ease-out ${
+            showPreview ? "opacity-[0.11] dark:opacity-[0.17]" : "opacity-0"
+          }`}
+          style={{
+            maskImage:
+              "radial-gradient(135% 130% at 88% 45%, #000 8%, transparent 68%)",
+            WebkitMaskImage:
+              "radial-gradient(135% 130% at 88% 45%, #000 8%, transparent 68%)",
+          }}
+        />
+      )}
       <div
-        className="pointer-events-none absolute -inset-px transition-opacity duration-500"
-        style={{
-          background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, var(--color-border), transparent 40%)`,
-          opacity,
-        }}
+        ref={glowRef}
+        className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-500"
       />
 
       <div className="relative z-10 md:col-span-1">
@@ -205,14 +298,20 @@ const ProjectCard = ({ project, i }: { project: any; i: number }) => {
           {project.description}
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
-          {project.tags.map((tag) => (
-            <span
-              key={tag}
-              className="border border-border px-2 py-1 text-[10px] font-bold uppercase tracking-tighter text-text-tertiary transition-colors group-hover:border-text-tertiary/50"
-            >
-              {tag}
-            </span>
-          ))}
+          {project.tags.map((tag: string) => {
+            const Icon = techIcons[tag];
+            return (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1.5 border border-border px-2 py-1 text-[10px] font-bold uppercase tracking-tighter text-text-tertiary transition-colors duration-300 group-hover:border-text-tertiary/50 group-hover:text-text-secondary"
+              >
+                {Icon && (
+                  <Icon className="h-3 w-3 shrink-0" aria-hidden="true" />
+                )}
+                {tag}
+              </span>
+            );
+          })}
         </div>
       </div>
       <div className="relative z-10 flex justify-end md:col-span-2">
@@ -220,7 +319,7 @@ const ProjectCard = ({ project, i }: { project: any; i: number }) => {
           <ArrowUpRight size={18} />
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 };
 
@@ -240,20 +339,10 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
-    // Load Cal.com embed script
-    const script = document.createElement("script");
-    script.src = "https://app.cal.com/embed/embed.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
   }, []);
 
   return (
+    <LazyMotion features={domAnimation} strict>
     <main className="relative min-h-screen selection:bg-text selection:text-bg">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-6 md:px-12 lg:px-24 mix-blend-difference">
@@ -279,13 +368,13 @@ export default function Home() {
       {/* Hero Section */}
       <section className="flex min-h-[90vh] flex-col justify-center px-6 pt-24 md:px-12 lg:px-24">
         <div className="max-w-5xl">
-          <motion.div {...fadeUp}>
+          <m.div {...fadeUp}>
             <span className="mb-6 block text-xs font-bold uppercase tracking-[0.2em] text-text-tertiary">
               Full-Stack Developer / Prompt Engineer / Software Developer
             </span>
-          </motion.div>
+          </m.div>
 
-          <motion.h1
+          <m.h1
             variants={staggerContainer}
             initial="initial"
             whileInView="whileInView"
@@ -295,17 +384,17 @@ export default function Home() {
             {"Manipulating LLMs to shape high-quality digital experiences."
               .split(" ")
               .map((word, i) => (
-                <motion.span
+                <m.span
                   key={i}
                   variants={wordAnimation}
                   className={word === "high-quality" ? "italic font-light" : ""}
                 >
                   {word}
-                </motion.span>
+                </m.span>
               ))}
-          </motion.h1>
+          </m.h1>
 
-          <motion.div
+          <m.div
             {...fadeUp}
             transition={{ delay: 0.5, ...fadeUp.transition }}
             className="mt-12 flex flex-col gap-8 md:flex-row md:items-end md:justify-between"
@@ -322,7 +411,7 @@ export default function Home() {
                 className="group flex items-center gap-2 text-sm font-bold uppercase tracking-widest transition-all hover:text-text-tertiary"
               >
                 View Projects
-                <motion.span
+                <m.span
                   animate={{ y: [0, 4, 0] }}
                   transition={{
                     duration: 2,
@@ -331,10 +420,10 @@ export default function Home() {
                   }}
                 >
                   ↓
-                </motion.span>
+                </m.span>
               </a>
             </div>
-          </motion.div>
+          </m.div>
         </div>
       </section>
 
@@ -357,35 +446,39 @@ export default function Home() {
         className="bg-bg-secondary px-6 py-32 md:px-12 lg:px-24 relative overflow-hidden"
       >
         <div className="mx-auto grid max-w-6xl gap-16 lg:grid-cols-2">
-          <motion.div {...fadeUp}>
+          <m.div {...fadeUp}>
             <span className="mb-6 block text-xs font-bold uppercase tracking-widest text-text-tertiary">
               Perspective
             </span>
             <h2 className="mb-8 font-serif text-5xl md:text-6xl">Philosophy</h2>
             <div className="space-y-6 text-lg leading-relaxed text-text-secondary">
               <p>
-                I am capable not only of building correct systems but also of
-                shaping high-quality, intentional user experiences through
-                AI-assisted workflows.
+                The job stopped being about typing code. The bottleneck is no
+                longer output—it&apos;s judgment. I design the system, direct
+                the agents that build it, and stay accountable for every
+                decision that reaches production.
               </p>
               <p>
-                My approach to{" "}
+                I think of this as{" "}
                 <span className="text-text font-medium italic">
-                  vibe coding
-                </span>{" "}
-                isn&apos;t about buzzwords—it&apos;s about technical
-                credibility, manipulating LLMs to achieve ambitious goals while
-                maintaining engineering rigor.
+                  agentic engineering
+                </span>
+                : orchestrating LLMs across the full loop—plan, build,
+                verify—while keeping a human hand on architecture, correctness,
+                and taste. Generating code is cheap now; knowing what deserves
+                to ship is the hard part.
               </p>
               <p>
-                Whether it&apos;s end-to-end CI/CD pipelines or AI project
-                generators, I strive for systems that feel deeply personal and
-                unmistakably human-crafted.
+                Agents accelerate everything, mistakes included. So I build the
+                guardrails that make speed safe—typed contracts, tests, review
+                gates, and the tooling that sits between an agent and
+                production. The result should read as intentional and
+                unmistakably human-crafted, never autogenerated.
               </p>
             </div>
-          </motion.div>
+          </m.div>
 
-          <motion.div
+          <m.div
             {...fadeUp}
             className="flex flex-col justify-center border-t border-border pt-16 lg:border-l lg:border-t-0 lg:pt-0 lg:pl-24"
           >
@@ -396,7 +489,7 @@ export default function Home() {
               {skills.map((skillGroup, i) => {
                 const Icon = skillGroup.icon;
                 return (
-                  <motion.div
+                  <m.div
                     key={skillGroup.category}
                     whileHover={{ x: 5 }}
                     transition={{ type: "spring", stiffness: 400, damping: 20 }}
@@ -413,11 +506,11 @@ export default function Home() {
                         <li key={item}>{item}</li>
                       ))}
                     </ul>
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </div>
-          </motion.div>
+          </m.div>
         </div>
       </section>
 
@@ -429,7 +522,7 @@ export default function Home() {
           </span>
           <div className="space-y-16">
             {experience.map((exp) => (
-              <motion.div key={exp.company} {...fadeUp} className="group">
+              <m.div key={exp.company} {...fadeUp} className="group">
                 <span className="text-xs font-bold tabular-nums text-text-tertiary">
                   {exp.period}
                 </span>
@@ -442,7 +535,7 @@ export default function Home() {
                 <p className="mx-auto mt-4 max-w-xl text-text-secondary">
                   {exp.details}
                 </p>
-              </motion.div>
+              </m.div>
             ))}
           </div>
         </div>
@@ -461,7 +554,7 @@ export default function Home() {
               </span>
               <h2 className="font-serif text-5xl md:text-6xl">Resume</h2>
             </div>
-            <motion.a
+            <m.a
               href={RESUME_URL}
               download="PratyushRastogi-Resume.pdf"
               target="_blank"
@@ -475,7 +568,7 @@ export default function Home() {
                 size={16}
                 className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300"
               />
-            </motion.a>
+            </m.a>
           </div>
 
           <div className="grid gap-16 md:grid-cols-2">
@@ -563,7 +656,7 @@ export default function Home() {
                 <Mail size={20} /> <span>rastogipratyush630@gmail.com</span>
               </a>
               <div className="flex gap-4">
-                <motion.a
+                <m.a
                   whileHover={{
                     y: -3,
                     backgroundColor: "var(--color-text)",
@@ -575,8 +668,8 @@ export default function Home() {
                   className="flex h-12 w-12 items-center justify-center rounded-full border border-border transition-colors duration-300"
                 >
                   <Github size={20} />
-                </motion.a>
-                <motion.a
+                </m.a>
+                <m.a
                   whileHover={{
                     y: -3,
                     backgroundColor: "var(--color-text)",
@@ -588,7 +681,7 @@ export default function Home() {
                   className="flex h-12 w-12 items-center justify-center rounded-full border border-border transition-colors duration-300"
                 >
                   <Linkedin size={20} />
-                </motion.a>
+                </m.a>
               </div>
             </div>
           </div>
@@ -616,5 +709,6 @@ export default function Home() {
         ctaButtonText="Schedule Call"
       />
     </main>
+    </LazyMotion>
   );
 }

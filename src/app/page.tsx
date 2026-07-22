@@ -351,7 +351,7 @@ export default function Home() {
         </span>
         <div className="flex items-center gap-8">
           <div className="hidden md:flex gap-8">
-            {["Work", "About", "Resume", "Contact"].map((item) => (
+            {["Work", "About", "Experience", "Resume", "Contact"].map((item) => (
               <a
                 key={item}
                 href={`#${item.toLowerCase()}`}
@@ -515,7 +515,7 @@ export default function Home() {
       </section>
 
       {/* Experience Section */}
-      <section className="px-6 py-32 md:px-12 lg:px-24">
+      <section id="experience" className="px-6 py-32 md:px-12 lg:px-24">
         <div className="mx-auto max-w-4xl text-center">
           <span className="mb-6 block text-xs font-bold uppercase tracking-widest text-text-tertiary">
             Journey

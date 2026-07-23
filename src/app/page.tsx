@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { ThemeToggleButton } from "@/components/theme-toggle";
 import { FloatingConsultButton } from "@/components/floating-consult-button";
+import { GitHubStreak } from "@/components/github-streak";
 import { useEffect, useCallback, useState, useRef } from "react";
 import type { IconType } from "react-icons";
 import {
@@ -708,6 +709,8 @@ export default function Home() {
         popupDescription="Schedule a 30-minute session to discuss AI integration, automation workflows, or full-stack architectural challenges. No strings attached—just technical depth and design taste."
         ctaButtonText="Schedule Call"
       />
+
+      <GitHubStreak />
     </main>
     </LazyMotion>
   );

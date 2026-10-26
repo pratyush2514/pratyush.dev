@@ -1,19 +1,21 @@
 "use client";
 
-import { LazyMotion, domAnimation, m } from "framer-motion";
 import {
-  ArrowUpRight,
-  Github,
-  Linkedin,
-  Mail,
-  Code2,
-  Cpu,
-  Calendar,
-} from "lucide-react";
+  LazyMotion,
+  MotionConfig,
+  domAnimation,
+  m,
+  useScroll,
+  useSpring,
+} from "framer-motion";
+import { ArrowUpRight, Check, Copy, Download, Github, Linkedin } from "lucide-react";
 import { ThemeToggleButton } from "@/components/theme-toggle";
 import { FloatingConsultButton } from "@/components/floating-consult-button";
 import { GitHubStreak } from "@/components/github-streak";
-import { useEffect, useCallback, useState, useRef } from "react";
+import { HairlineFigure } from "@/components/hairline-figure";
+import { ProjectPreview } from "@/components/project-preview";
+import { SITE } from "@/lib/site";
+import { useEffect, useState } from "react";
 import type { IconType } from "react-icons";
 import {
   SiGo,
@@ -29,11 +31,11 @@ import {
   SiReact,
   SiSpringboot,
   SiMysql,
-  SiMongodb,
-  SiGraphql,
   SiStreamlit,
   SiPandas,
   SiJsonwebtokens,
+  SiRust,
+  SiLinux,
 } from "react-icons/si";
 
 // Maps a tag label to its official brand mark (monochrome, inherits currentColor).
@@ -52,666 +54,699 @@ const techIcons: Record<string, IconType> = {
   React: SiReact,
   "Spring Boot": SiSpringboot,
   MySQL: SiMysql,
-  MongoDB: SiMongodb,
-  GraphQL: SiGraphql,
   Streamlit: SiStreamlit,
   Pandas: SiPandas,
   JWT: SiJsonwebtokens,
+  Rust: SiRust,
+  Linux: SiLinux,
 };
 
-const RESUME_URL =
-  "https://nqysiprpmxxombsdvdkh.supabase.co/storage/v1/object/public/portfolio/PratyushRastogiResume.pdf";
-const CALCOM_URL = "https://cal.com/pratyush-rastogi-wck12m/30min";
+type Project = {
+  title: string;
+  role: string;
+  year: string;
+  description: string;
+  tags: string[];
+  url?: string;
+  source?: string;
+  // A full-page capture in public/projects, and its height over its width.
+  shot?: { src: string; ratio: number };
+};
 
-const projects = [
+const featured: Project[] = [
   {
     title: "Backstop",
-    role: "Creator & Maintainer",
-    description:
-      "The last line of defense between your AI agent and production. An open-source safety gateway that classifies risky PostgreSQL queries via AST parsing, gates destructive writes behind human approval, and restores table snapshots from your own storage.",
-    tags: ["Go", "Python", "TypeScript", "PostgreSQL", "Docker"],
+    role: "Creator",
     year: "2026",
+    description:
+      "A gateway between AI agents and a PostgreSQL database. It parses every query, holds destructive writes until a person approves them, and restores a table from snapshots kept in your own storage.",
+    tags: ["Go", "Python", "TypeScript", "PostgreSQL", "Docker"],
     url: "https://backstop-iota.vercel.app/",
+    shot: { src: "/projects/backstop.webp", ratio: 3080 / 1440 },
+  },
+  {
+    title: "Portopsy",
+    role: "Creator",
+    year: "2026",
+    description:
+      "A command-line tool for Linux and WSL2 that answers one question: what is using this port? It shows the process, its parent chain, working directory and container, and changes nothing unless you confirm.",
+    tags: ["Rust", "Linux"],
+    url: "https://portopsy-cli.vercel.app/",
+    source: "https://github.com/pratyush2514/portopsy",
+    shot: { src: "/projects/portopsy.webp", ratio: 2331 / 1440 },
   },
   {
     title: "PulseBoard",
-    role: "Full-Stack Engineer",
-    description:
-      "Sentiment analysis for Slack conversations. Ingests message streams and surfaces team mood, tone shifts, and engagement signals through a real-time analytics dashboard.",
-    tags: ["Next.js", "Node.js", "Express", "OpenAI", "Slack"],
+    role: "Full-stack engineer",
     year: "2026",
-    url: "https://sentiment-front-end-next-js.vercel.app/",
-  },
-  {
-    title: "RSS Posting (rssposting.com)",
-    role: "Full-Stack Engineer",
     description:
-      "Production platform for automated Facebook and Instagram management. Features RSS feed posting, admin approval workflows, and JWT security.",
-    tags: ["Spring Boot", "JWT", "CI/CD", "React"],
+      "Reads Slack channels and shows how conversations are going: tone over time, threads still waiting on a reply, and channels where things are getting tense.",
+    tags: ["Next.js", "Node.js", "Express", "OpenAI", "Slack"],
+    url: "https://sentiment-front-end-next-js.vercel.app/",
+    shot: { src: "/projects/pulseboard.webp", ratio: 3600 / 1440 },
+  },
+];
+
+const more: Project[] = [
+  {
+    title: "RSS Posting",
+    role: "Full-stack engineer",
     year: "2025",
-    url: "https://rssposting.com",
+    description:
+      "Publishes to Facebook and Instagram from RSS feeds, with an approval step before anything goes live. Built end to end and supported after launch.",
+    tags: ["Spring Boot", "React", "JWT"],
   },
   {
     title: "Not Just ToDo AI",
-    role: "",
-    description:
-      "Personalized project idea generator using prompt engineering to move students beyond basic tutorials based on their specific learning progression.",
-    tags: ["Next.js", "Spring Boot", "MySQL", "OpenAI"],
+    role: "Side project",
     year: "2025",
-    url: "",
+    description:
+      "Suggests a next project that matches what a student already knows, so it is a real step up rather than another tutorial clone.",
+    tags: ["Next.js", "Spring Boot", "MySQL", "OpenAI"],
   },
   {
-    title: "Automated EDA Platform",
-    // role: "Software Engineer",
-    description:
-      "Data analysis platform reducing statistical reporting time by 70%. Optimized for large datasets with interactive visualizations and automated PDF generation.",
-    tags: ["Python", "Streamlit", "Pandas", "EDA"],
+    title: "Clean My Data",
+    role: "Side project",
     year: "2024",
-    url: "https://github.com/pratyush2514/Clean-My-Data",
+    description:
+      "Turns a raw dataset into summary statistics, interactive charts and a PDF report. Cut reporting time by about 70%.",
+    tags: ["Python", "Streamlit", "Pandas"],
+    source: "https://github.com/pratyush2514/Clean-My-Data",
   },
 ];
 
 const experience = [
   {
+    company: "Wednesday Solutions",
+    role: "Software Engineer I",
+    place: "Full-time · Pune",
+    period: "Feb – Apr 2026",
+    details:
+      "Shipped features on two products: PulseBoard, a Slack sentiment dashboard, and a queue management system that plugs into Moodle and Canvas.",
+  },
+  {
     company: "Freelance",
-    role: "Automation Engineer",
+    role: "Full-stack developer",
+    place: "Contract",
+    period: "Oct – Dec 2025",
+    details:
+      "Built RSS Posting, a tool that publishes to Facebook and Instagram from RSS feeds with an approval step, JWT auth, and support after launch.",
+  },
+  {
+    company: "Freelance",
+    role: "Automation engineer",
+    place: "Contract",
     period: "Jun 2025",
     details:
-      "Delivered end-to-end monitoring workflows using n8n and custom Bash scripts. Integrated real-time Slack alerting via OAuth API for 99.9% uptime awareness.",
-  },
-  {
-    company: "Freelance Full Stack Developer",
-    role: "Web Developer",
-    period: "Oct 2025 - Dec 2025",
-    details:
-      "Implemented a platform for automated Facebook and Instagram management. Features RSS feed posting, admin approval authentication, and End-2-End JWT security and Long Term Support.",
-  },
-  {
-    company: "Wednesday Solutions",
-    role: "Software Engineer I · Full-Time · Pune",
-    period: "Feb 2026 - Apr 2026",
-    details:
-      "Shipped production features across two products: PulseBoard, a real-time Slack sentiment-analysis dashboard, and a Queue Management System (QMS) integrated with LMS platforms like Moodle and Canvas.",
+      "Set up server monitoring with n8n and Bash scripts that post to Slack the moment something goes down.",
   },
 ];
 
-const skills = [
-  {
-    category: "Languages",
-    items: ["Java", "C#", "Python", "SQL"],
-    icon: Code2,
-  },
-  {
-    category: "Technologies",
-    items: ["Spring Boot", "React", "Next.js", "GraphQL", "MySQL", "MongoDB"],
-    icon: Cpu,
-  },
-  {
-    category: "Tools",
-    items: ["Git", "Docker", "AWS", "Linux", "CI/CD"],
-    icon: Code2,
-  },
-  {
-    category: "Core",
-    items: [
-      "AI Integration",
-      "Prompt Engineering",
-      "Full-Stack Development, Database Design, Enterprise Application Development",
-      "System Design",
-    ],
-    icon: Cpu,
-  },
+const toolbox = [
+  { label: "Languages", items: ["Java", "TypeScript", "Python", "Go", "Rust", "SQL", "C#"] },
+  { label: "Frameworks", items: ["Spring Boot", "React", "Next.js", "Node.js", "GraphQL", "Streamlit"] },
+  { label: "Data", items: ["PostgreSQL", "MySQL", "MongoDB"] },
+  { label: "Tools", items: ["Git", "Docker", "AWS", "Linux", "n8n", "CI/CD"] },
+];
+
+const NAV = [
+  { id: "work", label: "Work" },
+  { id: "about", label: "About" },
+  { id: "experience", label: "Experience" },
+  { id: "contact", label: "Contact" },
 ];
 
 // Expo-out cubic bézier, typed as a tuple so framer-motion accepts it.
 const EASE_OUT_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 const fadeUp = {
-  initial: { opacity: 0, y: 30 },
+  initial: { opacity: 0, y: 24 },
   whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true },
-  transition: { duration: 0.8, ease: EASE_OUT_EXPO },
+  viewport: { once: true, margin: "-80px" },
+  transition: { duration: 0.9, ease: EASE_OUT_EXPO },
 };
 
-const staggerContainer = {
+const headline = {
   initial: {},
-  whileInView: {
-    transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.2,
-    },
-  },
-  viewport: { once: true },
+  animate: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } },
 };
 
-const wordAnimation = {
-  initial: { opacity: 0, y: 20 },
-  whileInView: {
+const word = {
+  initial: { opacity: 0, y: "0.35em", filter: "blur(10px)" },
+  animate: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.8, ease: EASE_OUT_EXPO },
+    filter: "blur(0px)",
+    transition: { duration: 1, ease: EASE_OUT_EXPO },
   },
 };
 
-// Builds an on-the-fly screenshot of a live URL (link-unfurl style, à la X/Slack).
-// Returned image is used directly as an <img src>. Swap this line for a static
-// asset path later if you want zero external dependency.
-const buildPreviewSrc = (url: string) =>
-  `https://api.microlink.io/?url=${encodeURIComponent(
-    url
-  )}&screenshot=true&meta=false&embed=screenshot.url&viewport.width=1280&viewport.height=800&waitUntil=networkidle2`;
+const Label = ({ children }: { children: React.ReactNode }) => (
+  <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-tertiary">
+    {children}
+  </span>
+);
 
-const ProjectCard = ({ project, i }: { project: any; i: number }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const glowRef = useRef<HTMLDivElement>(null);
-  const [hovered, setHovered] = useState(false);
-  const [previewMounted, setPreviewMounted] = useState(false);
-  const [previewLoaded, setPreviewLoaded] = useState(false);
-  const [previewFailed, setPreviewFailed] = useState(false);
+const SectionHead = ({
+  index,
+  label,
+  title,
+  aside,
+}: {
+  index: string;
+  label: string;
+  title: React.ReactNode;
+  aside?: React.ReactNode;
+}) => (
+  <m.div {...fadeUp} className="mb-14 md:mb-20">
+    <div className="mb-8 flex items-center gap-3 border-t border-border pt-5">
+      <Label>{index}</Label>
+      <span className="h-px w-6 bg-border" aria-hidden="true" />
+      <Label>{label}</Label>
+    </div>
+    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <h2 className="text-balance font-serif text-5xl leading-[0.95] tracking-tight md:text-7xl">
+        {title}
+      </h2>
+      {aside}
+    </div>
+  </m.div>
+);
 
-  const previewSrc =
-    project.url && project.preview !== false
-      ? buildPreviewSrc(project.url)
-      : null;
+const Tags = ({ tags }: { tags: string[] }) => (
+  <ul className="flex flex-wrap gap-1.5">
+    {tags.map((tag) => {
+      const Icon = techIcons[tag];
+      return (
+        <li
+          key={tag}
+          className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 font-mono text-[11px] text-text-secondary"
+        >
+          {Icon && <Icon className="size-3 shrink-0" aria-hidden="true" />}
+          {tag}
+        </li>
+      );
+    })}
+  </ul>
+);
 
-  // Drive the cursor spotlight via a direct style write instead of React state,
-  // so moving the mouse never triggers a re-render (60fps without reconciliation).
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const container = containerRef.current;
-    const glow = glowRef.current;
-    if (!container || !glow) return;
-    const rect = container.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    glow.style.background = `radial-gradient(600px circle at ${x}px ${y}px, var(--color-border), transparent 40%)`;
-  };
+const ExternalLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="group/link inline-flex items-center gap-1 text-sm font-medium text-text"
+  >
+    <span className="link-hover">{children}</span>
+    <ArrowUpRight
+      size={15}
+      className="transition-transform duration-300 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5"
+    />
+  </a>
+);
 
-  const handleEnter = () => {
-    if (glowRef.current) glowRef.current.style.opacity = "1";
-    setHovered(true);
-    if (previewSrc) setPreviewMounted(true); // lazy: only fetch once hovered
-  };
-
-  const handleLeave = () => {
-    if (glowRef.current) glowRef.current.style.opacity = "0";
-    setHovered(false);
-  };
-
-  const handleClick = () => {
-    if (!project.url) return;
-    window.open(project.url, "_blank", "noopener,noreferrer");
-  };
-
-  const showPreview = hovered && previewLoaded && !previewFailed;
-
-  return (
-    <m.div
-      ref={containerRef}
-      key={project.title}
-      {...fadeUp}
-      transition={{ delay: i * 0.05, ...fadeUp.transition }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleEnter}
-      onMouseLeave={handleLeave}
-      onClick={handleClick}
-      className="group relative grid gap-8 bg-bg py-12 transition-colors duration-500 hover:bg-bg-secondary/50 md:grid-cols-12 md:gap-16 overflow-hidden"
+const FeaturedProject = ({ project, i }: { project: Project; i: number }) => (
+  <m.article
+    {...fadeUp}
+    className="group grid items-center gap-8 md:grid-cols-12 md:gap-12"
+  >
+    <div className={`md:col-span-5 ${i % 2 ? "md:order-2" : ""}`}>
+      <div className="mb-5 flex items-center gap-3">
+        <Label>{project.year}</Label>
+        <span className="h-px w-4 bg-border" aria-hidden="true" />
+        <Label>{project.role}</Label>
+      </div>
+      <h3 className="font-serif text-4xl tracking-tight md:text-5xl">{project.title}</h3>
+      <p className="mt-4 max-w-md text-pretty leading-relaxed text-text-secondary">
+        {project.description}
+      </p>
+      <div className="mt-6">
+        <Tags tags={project.tags} />
+      </div>
+      <div className="mt-7 flex gap-6">
+        {project.url && <ExternalLink href={project.url}>Visit site</ExternalLink>}
+        {project.source && <ExternalLink href={project.source}>Source</ExternalLink>}
+      </div>
+    </div>
+    <a
+      href={project.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`Open ${project.title}`}
+      className={`block md:col-span-7 ${i % 2 ? "md:order-1" : ""}`}
     >
-      {previewSrc && previewMounted && (
-        <img
-          src={previewSrc}
-          alt=""
-          aria-hidden="true"
-          loading="lazy"
-          draggable={false}
-          onLoad={() => setPreviewLoaded(true)}
-          onError={() => setPreviewFailed(true)}
-          className={`pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-left-top grayscale transition-opacity duration-700 ease-out ${
-            showPreview ? "opacity-[0.11] dark:opacity-[0.17]" : "opacity-0"
-          }`}
-          style={{
-            maskImage:
-              "radial-gradient(135% 130% at 88% 45%, #000 8%, transparent 68%)",
-            WebkitMaskImage:
-              "radial-gradient(135% 130% at 88% 45%, #000 8%, transparent 68%)",
-          }}
+      {project.shot && project.url && (
+        <ProjectPreview
+          src={project.shot.src}
+          ratio={project.shot.ratio}
+          url={project.url}
+          alt={`Screenshot of the ${project.title} website`}
         />
       )}
-      <div
-        ref={glowRef}
-        className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-500"
-      />
+    </a>
+  </m.article>
+);
 
-      <div className="relative z-10 md:col-span-1">
-        <span className="text-xs font-bold text-text-tertiary tabular-nums">
-          {project.year}
-        </span>
-      </div>
-      <div className="relative z-10 md:col-span-5">
-        <h3 className="font-serif text-3xl md:text-4xl group-hover:italic transition-all duration-500">
-          {project.title}
-        </h3>
-        <p className="mt-2 text-xs font-medium uppercase tracking-widest text-text-tertiary">
-          {project.role}
-        </p>
-      </div>
-      <div className="relative z-10 md:col-span-4">
-        <p className="text-sm leading-relaxed text-text-secondary">
-          {project.description}
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {project.tags.map((tag: string) => {
-            const Icon = techIcons[tag];
-            return (
-              <span
-                key={tag}
-                className="inline-flex items-center gap-1.5 border border-border px-2 py-1 text-[10px] font-bold uppercase tracking-tighter text-text-tertiary transition-colors duration-300 group-hover:border-text-tertiary/50 group-hover:text-text-secondary"
-              >
-                {Icon && (
-                  <Icon className="h-3 w-3 shrink-0" aria-hidden="true" />
-                )}
-                {tag}
-              </span>
-            );
-          })}
-        </div>
-      </div>
-      <div className="relative z-10 flex justify-end md:col-span-2">
-        <div className="h-10 w-10 flex items-center justify-center rounded-full border border-border transition-all duration-500 group-hover:rotate-45 group-hover:bg-text group-hover:text-bg">
-          <ArrowUpRight size={18} />
-        </div>
-      </div>
-    </m.div>
+const CopyEmail = () => {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        navigator.clipboard?.writeText(SITE.email).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1600);
+        });
+      }}
+      aria-label="Copy email address"
+      className="inline-flex size-9 items-center justify-center rounded-full border border-border text-text-secondary transition-colors hover:border-text-tertiary hover:text-text"
+    >
+      {copied ? <Check size={15} /> : <Copy size={15} />}
+    </button>
   );
 };
 
 export default function Home() {
-  const openExternalUrl = useCallback((url: string) => {
-    try {
-      window.parent.postMessage(
-        { type: "OPEN_EXTERNAL_URL", data: { url } },
-        "*"
-      );
-    } catch {
-      // Fallback: try direct navigation if postMessage fails
-    }
-  }, []);
-
-  const [mounted, setMounted] = useState(false);
+  const [year, setYear] = useState<number | null>(null);
+  const [active, setActive] = useState<string>("");
+  const { scrollYProgress } = useScroll();
+  const progress = useSpring(scrollYProgress, { stiffness: 140, damping: 30, mass: 0.4 });
 
   useEffect(() => {
-    setMounted(true);
+    setYear(new Date().getFullYear());
+  }, []);
+
+  // Light up the nav link for the section in the middle of the viewport.
+  useEffect(() => {
+    const sections = NAV.map(({ id }) => document.getElementById(id)).filter(
+      (el): el is HTMLElement => !!el
+    );
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) if (e.isIntersecting) setActive(e.target.id);
+      },
+      { rootMargin: "-45% 0px -50% 0px" }
+    );
+    sections.forEach((s) => io.observe(s));
+    return () => io.disconnect();
   }, []);
 
   return (
     <LazyMotion features={domAnimation} strict>
-    <main className="relative min-h-screen selection:bg-text selection:text-bg">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-6 md:px-12 lg:px-24 mix-blend-difference">
-        <span className="text-sm font-semibold tracking-tighter select-none hover:text-[#b8a16f] transition-colors duration-700 cursor-default uppercase text-bg dark:text-white">
-          pratyush.dev
-        </span>
-        <div className="flex items-center gap-8">
-          <div className="hidden md:flex gap-8">
-            {["Work", "About", "Experience", "Resume", "Contact"].map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
-                className="text-sm font-medium text-bg/80 dark:text-white/60 hover:text-bg dark:hover:text-white transition-colors link-hover"
-              >
-                {item}
-              </a>
-            ))}
-          </div>
-          <ThemeToggleButton />
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <section className="flex min-h-[90vh] flex-col justify-center px-6 pt-24 md:px-12 lg:px-24">
-        <div className="max-w-5xl">
-          <m.div {...fadeUp}>
-            <span className="mb-6 block text-xs font-bold uppercase tracking-[0.2em] text-text-tertiary">
-              Full-Stack Developer / Prompt Engineer / Software Developer
-            </span>
-          </m.div>
-
-          <m.h1
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="whileInView"
-            viewport={{ once: true }}
-            className="text-balance font-serif text-[clamp(2.5rem,10vw,7rem)] leading-[0.9] tracking-tighter flex flex-wrap gap-x-[0.2em]"
-          >
-            {"Manipulating LLMs to shape high-quality digital experiences."
-              .split(" ")
-              .map((word, i) => (
-                <m.span
-                  key={i}
-                  variants={wordAnimation}
-                  className={word === "high-quality" ? "italic font-light" : ""}
-                >
-                  {word}
-                </m.span>
-              ))}
-          </m.h1>
-
-          <m.div
-            {...fadeUp}
-            transition={{ delay: 0.5, ...fadeUp.transition }}
-            className="mt-12 flex flex-col gap-8 md:flex-row md:items-end md:justify-between"
-          >
-            <p className="max-w-md text-lg leading-relaxed text-text-secondary">
-              I build intentional systems using AI-assisted workflows. Focused
-              on engineering correctness and design taste—delivering
-              production-ready solutions with technical depth.
-            </p>
-
-            <div className="flex gap-6">
-              <a
-                href="#work"
-                className="group flex items-center gap-2 text-sm font-bold uppercase tracking-widest transition-all hover:text-text-tertiary"
-              >
-                View Projects
-                <m.span
-                  animate={{ y: [0, 4, 0] }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                >
-                  ↓
-                </m.span>
-              </a>
-            </div>
-          </m.div>
-        </div>
-      </section>
-
-      {/* Projects Section */}
-      <section id="work" className="px-6 py-32 md:px-12 lg:px-24">
-        <div className="mb-20">
-          <h2 className="font-serif text-5xl md:text-7xl">Selected Work</h2>
-        </div>
-
-        <div className="grid gap-px bg-border">
-          {projects.map((project, i) => (
-            <ProjectCard key={project.title} project={project} i={i} />
-          ))}
-        </div>
-      </section>
-
-      {/* About Section */}
-      <section
-        id="about"
-        className="bg-bg-secondary px-6 py-32 md:px-12 lg:px-24 relative overflow-hidden"
-      >
-        <div className="mx-auto grid max-w-6xl gap-16 lg:grid-cols-2">
-          <m.div {...fadeUp}>
-            <span className="mb-6 block text-xs font-bold uppercase tracking-widest text-text-tertiary">
-              Perspective
-            </span>
-            <h2 className="mb-8 font-serif text-5xl md:text-6xl">Philosophy</h2>
-            <div className="space-y-6 text-lg leading-relaxed text-text-secondary">
-              <p>
-                The job stopped being about typing code. The bottleneck is no
-                longer output—it&apos;s judgment. I design the system, direct
-                the agents that build it, and stay accountable for every
-                decision that reaches production.
-              </p>
-              <p>
-                I think of this as{" "}
-                <span className="text-text font-medium italic">
-                  agentic engineering
-                </span>
-                : orchestrating LLMs across the full loop—plan, build,
-                verify—while keeping a human hand on architecture, correctness,
-                and taste. Generating code is cheap now; knowing what deserves
-                to ship is the hard part.
-              </p>
-              <p>
-                Agents accelerate everything, mistakes included. So I build the
-                guardrails that make speed safe—typed contracts, tests, review
-                gates, and the tooling that sits between an agent and
-                production. The result should read as intentional and
-                unmistakably human-crafted, never autogenerated.
-              </p>
-            </div>
-          </m.div>
-
-          <m.div
-            {...fadeUp}
-            className="flex flex-col justify-center border-t border-border pt-16 lg:border-l lg:border-t-0 lg:pt-0 lg:pl-24"
-          >
-            <span className="mb-8 block text-xs font-bold uppercase tracking-widest text-text-tertiary">
-              Competencies
-            </span>
-            <div className="grid grid-cols-2 gap-12">
-              {skills.map((skillGroup, i) => {
-                const Icon = skillGroup.icon;
-                return (
-                  <m.div
-                    key={skillGroup.category}
-                    whileHover={{ x: 5 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                  >
-                    <Icon
-                      className="mb-4 text-text-tertiary transition-colors group-hover:text-text"
-                      size={24}
-                    />
-                    <h4 className="mb-2 font-bold uppercase tracking-tighter">
-                      {skillGroup.category}
-                    </h4>
-                    <ul className="text-sm text-text-secondary space-y-1">
-                      {skillGroup.items.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </m.div>
-                );
-              })}
-            </div>
-          </m.div>
-        </div>
-      </section>
-
-      {/* Experience Section */}
-      <section id="experience" className="px-6 py-32 md:px-12 lg:px-24">
-        <div className="mx-auto max-w-4xl text-center">
-          <span className="mb-6 block text-xs font-bold uppercase tracking-widest text-text-tertiary">
-            Journey
-          </span>
-          <div className="space-y-16">
-            {experience.map((exp) => (
-              <m.div key={exp.company} {...fadeUp} className="group">
-                <span className="text-xs font-bold tabular-nums text-text-tertiary">
-                  {exp.period}
-                </span>
-                <h3 className="mt-2 font-serif text-4xl md:text-5xl group-hover:italic transition-all duration-500">
-                  {exp.company}
-                </h3>
-                <p className="mt-1 text-sm font-medium uppercase tracking-widest text-text-tertiary">
-                  {exp.role}
-                </p>
-                <p className="mx-auto mt-4 max-w-xl text-text-secondary">
-                  {exp.details}
-                </p>
-              </m.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Resume Section */}
-      <section
-        id="resume"
-        className="bg-bg-secondary px-6 py-32 md:px-12 lg:px-24 border-y border-border"
-      >
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-16 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <span className="mb-4 block text-xs font-bold uppercase tracking-widest text-text-tertiary">
-                Credentials
-              </span>
-              <h2 className="font-serif text-5xl md:text-6xl">Resume</h2>
-            </div>
-            <m.a
-              href={RESUME_URL}
-              download="PratyushRastogi-Resume.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              className="group flex items-center gap-2 text-sm font-bold uppercase tracking-widest cursor-pointer"
+      <MotionConfig reducedMotion="user">
+        <main className="relative min-h-screen overflow-x-clip">
+          {/* Navigation */}
+          <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4">
+            <nav
+              aria-label="Primary"
+              className="relative flex w-full max-w-6xl items-center justify-between gap-4 overflow-hidden rounded-full border border-border/80 bg-bg/70 py-1.5 pl-5 pr-1.5 backdrop-blur-xl backdrop-saturate-150"
             >
-              Download PDF{" "}
-              <ArrowUpRight
-                size={16}
-                className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300"
-              />
-            </m.a>
-          </div>
-
-          <div className="grid gap-16 md:grid-cols-2">
-            <div>
-              <h3 className="mb-6 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-text-tertiary">
-                <Code2 size={14} /> Technical Core
-              </h3>
-              <div className="space-y-8">
-                <div>
-                  <h4 className="font-bold text-sm uppercase tracking-tighter mb-2">
-                    Languages & Dev
-                  </h4>
-                  <p className="text-text-secondary text-sm leading-relaxed">
-                    Java (Advanced), Java 8, C#, Python, SQL, HTML/CSS,
-                    JavaScript, TypeScript, OOPs.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm uppercase tracking-tighter mb-2">
-                    Frameworks & APIs
-                  </h4>
-                  <p className="text-text-secondary text-sm leading-relaxed">
-                    Java Spring Boot, GraphQL, MySQL, MongoDB, REST APIs,
-                    Streamlit, React, Next.js.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm uppercase tracking-tighter mb-2">
-                    Tools & DevOps
-                  </h4>
-                  <p className="text-text-secondary text-sm leading-relaxed">
-                    Git, Docker, AWS, Linux, n8n, CI/CD Pipelines, OAuth API.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="mb-6 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-text-tertiary">
-                <Cpu size={14} /> Education & Certs
-              </h3>
-              <div className="space-y-8">
-                <div>
-                  <h4 className="font-bold text-sm uppercase tracking-tighter mb-2">
-                    Graphic Era University
-                  </h4>
-                  <p className="text-text-secondary text-sm">
-                    B.Sc. in IT (2022 — 2025)
-                  </p>
-                  <p className="text-xs text-text-tertiary mt-1 tabular-nums">
-                    CGPA: 7.64 / 10.0
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm uppercase tracking-tighter mb-2">
-                    Certifications
-                  </h4>
-                  <ul className="text-text-secondary text-sm space-y-1">
-                    <li>Data Science Certification (Great Learning)</li>
-                    <li>Oracle Java Certification (In Progress)</li>
-                    <li>AWS Solutions Architect (Currently Learning)</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer / Contact */}
-      <footer id="contact" className="px-6 py-24 md:px-12 lg:px-24">
-        <div className="flex flex-col justify-between gap-12 lg:flex-row lg:items-end">
-          <div>
-            <span className="mb-6 block text-xs font-bold uppercase tracking-widest text-text-tertiary">
-              Get in touch
-            </span>
-            <h2 className="mb-8 font-serif text-6xl md:text-8xl">
-              Let&apos;s talk.
-            </h2>
-            <div className="flex flex-wrap gap-8">
-              <a
-                href="mailto:rastogipratyush630@gmail.com"
-                className="flex items-center gap-2 text-xl font-medium link-hover"
-              >
-                <Mail size={20} /> <span>rastogipratyush630@gmail.com</span>
+              <a href="#top" className="text-sm font-semibold tracking-tight">
+                pratyush<span className="text-text-tertiary">.dev</span>
               </a>
-              <div className="flex gap-4">
-                <m.a
-                  whileHover={{
-                    y: -3,
-                    backgroundColor: "var(--color-text)",
-                    color: "var(--color-bg)",
-                  }}
-                  href="https://github.com/pratyush2514"
+              <div className="flex items-center gap-1">
+                <ul className="hidden items-center sm:flex">
+                  {NAV.map(({ id, label }) => (
+                    <li key={id}>
+                      <a
+                        href={`#${id}`}
+                        aria-current={active === id ? "true" : undefined}
+                        className={`rounded-full px-3.5 py-2 text-[13px] transition-colors duration-300 ${
+                          active === id
+                            ? "bg-bg-secondary text-text"
+                            : "text-text-secondary hover:text-text"
+                        }`}
+                      >
+                        {label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                <a
+                  href={SITE.resume}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-12 w-12 items-center justify-center rounded-full border border-border transition-colors duration-300"
+                  className="hidden rounded-full px-3.5 py-2 text-[13px] text-text-secondary transition-colors hover:text-text md:block"
                 >
-                  <Github size={20} />
-                </m.a>
-                <m.a
-                  whileHover={{
-                    y: -3,
-                    backgroundColor: "var(--color-text)",
-                    color: "var(--color-bg)",
-                  }}
-                  href="https://linkedin.com/in/pratyushrastogi05"
+                  Resume
+                </a>
+                <ThemeToggleButton className="ml-1 size-9" />
+              </div>
+              <m.span
+                aria-hidden="true"
+                style={{ scaleX: progress }}
+                className="absolute inset-x-6 bottom-0 h-px origin-left bg-text/30"
+              />
+            </nav>
+          </header>
+
+          {/* Hero */}
+          <section id="top" className="relative mx-auto max-w-6xl px-6 pb-24 pt-36 md:px-10 md:pt-44">
+            <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
+              <div className="lg:col-span-7">
+                <m.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, ease: EASE_OUT_EXPO }}
+                  className="mb-8 inline-flex items-center gap-2.5 rounded-full border border-border bg-bg/60 py-1.5 pl-2.5 pr-3.5"
+                >
+                  <span className="relative flex size-2">
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500/50 motion-reduce:hidden" />
+                    <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+                  </span>
+                  <span className="text-[13px] text-text-secondary">Open to full-time roles</span>
+                </m.div>
+
+                <m.h1
+                  variants={headline}
+                  initial="initial"
+                  animate="animate"
+                  className="text-balance font-serif text-[clamp(2.9rem,6.2vw,5.6rem)] leading-[0.95] tracking-[-0.02em]"
+                >
+                  {"I build software, and the guardrails around it.".split(" ").map((w, i) => (
+                    <m.span
+                      key={i}
+                      variants={word}
+                      className={`mr-[0.22em] inline-block ${
+                        w === "guardrails" ? "italic text-text-secondary" : ""
+                      }`}
+                    >
+                      {w}
+                    </m.span>
+                  ))}
+                </m.h1>
+
+                <m.p
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7, duration: 0.9, ease: EASE_OUT_EXPO }}
+                  className="mt-8 max-w-lg text-pretty text-lg leading-relaxed text-text-secondary"
+                >
+                  I&apos;m Pratyush, a full-stack engineer. Lately I&apos;ve built an
+                  approval gateway for AI agents that touch Postgres, and a CLI that
+                  tells you what is holding a port before you kill it.
+                </m.p>
+
+                <m.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.85, duration: 0.9, ease: EASE_OUT_EXPO }}
+                  className="mt-10 flex flex-wrap items-center gap-3"
+                >
+                  <a
+                    href="#work"
+                    className="group inline-flex items-center gap-2 rounded-full bg-text px-5 py-3 text-sm font-medium text-bg transition-transform duration-300 hover:-translate-y-0.5 active:translate-y-0"
+                  >
+                    See my work
+                    <span className="transition-transform duration-300 group-hover:translate-y-0.5">↓</span>
+                  </a>
+                  <a
+                    href={SITE.calendar}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-5 py-3 text-sm font-medium transition-colors duration-300 hover:border-text-tertiary"
+                  >
+                    Book a call <ArrowUpRight size={15} />
+                  </a>
+                </m.div>
+              </div>
+
+              <m.div
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3, duration: 1.4, ease: EASE_OUT_EXPO }}
+                className="relative lg:col-span-5"
+              >
+                <div className="dot-grid absolute inset-0 -z-10" aria-hidden="true" />
+                <HairlineFigure
+                  name="stack"
+                  autoplay
+                  caption="fig. 1 — move across to open the stack"
+                  className="mx-auto max-w-[520px]"
+                  stageClassName="scale-[1.15] lg:scale-[1.3]"
+                />
+              </m.div>
+            </div>
+          </section>
+
+          {/* Work */}
+          <section id="work" className="mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
+            <SectionHead
+              index="01"
+              label="Work"
+              title="Selected work"
+              aside={
+                <p className="max-w-xs text-sm text-text-secondary">
+                  Things I designed, built and shipped. Hover a preview to scroll the page.
+                </p>
+              }
+            />
+
+            <div className="space-y-24 md:space-y-32">
+              {featured.map((project, i) => (
+                <FeaturedProject key={project.title} project={project} i={i} />
+              ))}
+            </div>
+
+            <m.div {...fadeUp} className="mt-28">
+              <div className="mb-2 flex items-center justify-between">
+                <Label>Also built</Label>
+              </div>
+              <ul className="divide-y divide-border border-y border-border">
+                {more.map((p) => {
+                  const href = p.url ?? p.source;
+                  const Row = href ? "a" : "div";
+                  return (
+                    <li key={p.title}>
+                      <Row
+                        {...(href ? { href, target: "_blank", rel: "noopener noreferrer" } : {})}
+                        className="group grid gap-3 py-7 transition-colors duration-500 md:grid-cols-12 md:gap-8"
+                      >
+                        <span className="font-mono text-[11px] text-text-tertiary md:col-span-1 md:pt-2">
+                          {p.year}
+                        </span>
+                        <div className="md:col-span-4">
+                          <h3 className="flex items-center gap-2 font-serif text-3xl tracking-tight">
+                            {p.title}
+                            {href && (
+                              <ArrowUpRight
+                                size={18}
+                                className="text-text-tertiary transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-text"
+                              />
+                            )}
+                          </h3>
+                          <p className="mt-1 text-sm text-text-tertiary">{p.role}</p>
+                        </div>
+                        <p className="text-pretty text-sm leading-relaxed text-text-secondary md:col-span-4 md:pt-1">
+                          {p.description}
+                        </p>
+                        <div className="md:col-span-3 md:flex md:justify-end md:pt-1">
+                          <Tags tags={p.tags} />
+                        </div>
+                      </Row>
+                    </li>
+                  );
+                })}
+              </ul>
+            </m.div>
+          </section>
+
+          {/* About */}
+          <section id="about" className="border-y border-border bg-bg-secondary">
+            <div className="mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
+              <SectionHead index="02" label="About" title="How I work" />
+
+              <div className="grid gap-16 lg:grid-cols-12 lg:gap-12">
+                <m.div {...fadeUp} className="space-y-6 text-lg leading-relaxed text-text-secondary lg:col-span-6">
+                  <p className="text-pretty">
+                    Writing code got cheap. Deciding what should ship didn&apos;t. I use
+                    AI tools every day, and I treat what they write like a pull request
+                    from a fast, confident teammate: read it, test it, and own whatever
+                    reaches production.
+                  </p>
+                  <p className="text-pretty">
+                    A lot of what I build sits right at that edge. Backstop puts a
+                    person between an agent and a live database. Portopsy shows you
+                    exactly what you are about to stop before you stop it. Both are
+                    read-only until you say otherwise.
+                  </p>
+                  <p className="text-pretty">
+                    Before that, I worked across Java and Spring Boot back ends, React
+                    and Next.js front ends, and the plumbing between them.
+                  </p>
+                </m.div>
+
+                <m.div {...fadeUp} className="lg:col-span-5 lg:col-start-8">
+                  <HairlineFigure
+                    name="keys"
+                    caption="fig. 2 — press a key"
+                    className="[--hairline-plate:var(--color-bg-secondary)]"
+                    stageClassName="lg:scale-110"
+                  />
+                </m.div>
+              </div>
+
+              <m.dl
+                {...fadeUp}
+                className="mt-20 grid gap-x-8 gap-y-10 border-t border-border pt-10 sm:grid-cols-2 lg:grid-cols-4"
+              >
+                {toolbox.map((group) => (
+                  <div key={group.label}>
+                    <dt className="mb-3">
+                      <Label>{group.label}</Label>
+                    </dt>
+                    <dd className="text-[15px] leading-7 text-text">
+                      {group.items.join(", ")}
+                    </dd>
+                  </div>
+                ))}
+              </m.dl>
+            </div>
+          </section>
+
+          {/* Experience */}
+          <section id="experience" className="mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
+            <SectionHead
+              index="03"
+              label="Experience"
+              title="Where I've worked"
+              aside={
+                <a
+                  href={SITE.resume}
+                  download="PratyushRastogi-Resume.pdf"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-12 w-12 items-center justify-center rounded-full border border-border transition-colors duration-300"
+                  className="inline-flex items-center gap-2 self-start rounded-full border border-border px-4 py-2.5 text-sm font-medium transition-colors duration-300 hover:border-text-tertiary md:self-auto"
                 >
-                  <Linkedin size={20} />
-                </m.a>
+                  <Download size={15} /> Resume (PDF)
+                </a>
+              }
+            />
+
+            <ol className="border-b border-border">
+              {experience.map((exp) => (
+                <m.li
+                  key={exp.period}
+                  {...fadeUp}
+                  className="grid gap-3 border-t border-border py-8 md:grid-cols-12 md:gap-8"
+                >
+                  <span className="font-mono text-[12px] text-text-tertiary md:col-span-3 md:pt-1.5">
+                    {exp.period}
+                  </span>
+                  <div className="md:col-span-4">
+                    <h3 className="font-serif text-3xl tracking-tight">{exp.company}</h3>
+                    <p className="mt-1 text-sm text-text-tertiary">
+                      {exp.role} · {exp.place}
+                    </p>
+                  </div>
+                  <p className="text-pretty leading-relaxed text-text-secondary md:col-span-5 md:pt-1">
+                    {exp.details}
+                  </p>
+                </m.li>
+              ))}
+            </ol>
+
+            <m.div {...fadeUp} id="resume" className="mt-20 grid gap-10 md:grid-cols-12 md:gap-8">
+              <div className="md:col-span-3">
+                <Label>Education</Label>
+              </div>
+              <div className="md:col-span-4">
+                <h3 className="font-serif text-2xl">Graphic Era University</h3>
+                <p className="mt-1 text-sm text-text-secondary">B.Sc. Information Technology</p>
+                <p className="mt-1 font-mono text-[12px] text-text-tertiary">2022 – 2025 · CGPA 7.64</p>
+              </div>
+              <div className="md:col-span-5">
+                <ul className="space-y-2 text-sm text-text-secondary">
+                  <li className="flex justify-between gap-4 border-b border-border pb-2">
+                    <span>Data Science — Great Learning</span>
+                    <span className="font-mono text-[12px] text-text-tertiary">Certified</span>
+                  </li>
+                  <li className="flex justify-between gap-4 border-b border-border pb-2">
+                    <span>Oracle Java</span>
+                    <span className="font-mono text-[12px] text-text-tertiary">In progress</span>
+                  </li>
+                  <li className="flex justify-between gap-4">
+                    <span>AWS Solutions Architect</span>
+                    <span className="font-mono text-[12px] text-text-tertiary">Studying</span>
+                  </li>
+                </ul>
+              </div>
+            </m.div>
+          </section>
+
+          {/* Contact */}
+          <footer id="contact" className="border-t border-border">
+            <div className="mx-auto max-w-6xl px-6 pb-12 pt-24 md:px-10 md:pt-32">
+              <m.div {...fadeUp}>
+                <div className="mb-8 flex items-center gap-3">
+                  <Label>04</Label>
+                  <span className="h-px w-6 bg-border" aria-hidden="true" />
+                  <Label>Contact</Label>
+                </div>
+                <h2 className="font-serif text-[clamp(3.5rem,11vw,9rem)] leading-[0.9] tracking-[-0.02em]">
+                  Let&apos;s <span className="italic text-text-secondary">talk.</span>
+                </h2>
+                <p className="mt-8 max-w-md text-lg text-text-secondary">
+                  Hiring, a project, or something you are stuck on. Email is the
+                  fastest way to reach me.
+                </p>
+
+                <div className="mt-10 flex flex-wrap items-center gap-3">
+                  <a
+                    href={`mailto:${SITE.email}`}
+                    className="inline-flex items-center rounded-full bg-text px-5 py-3 text-sm font-medium text-bg transition-transform duration-300 hover:-translate-y-0.5"
+                  >
+                    {SITE.email}
+                  </a>
+                  <CopyEmail />
+                  <span className="mx-1 hidden h-5 w-px bg-border sm:block" aria-hidden="true" />
+                  <a
+                    href={SITE.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="GitHub"
+                    className="inline-flex size-11 items-center justify-center rounded-full border border-border transition-colors duration-300 hover:bg-text hover:text-bg"
+                  >
+                    <Github size={18} />
+                  </a>
+                  <a
+                    href={SITE.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="LinkedIn"
+                    className="inline-flex size-11 items-center justify-center rounded-full border border-border transition-colors duration-300 hover:bg-text hover:text-bg"
+                  >
+                    <Linkedin size={18} />
+                  </a>
+                </div>
+              </m.div>
+
+              <div className="mt-28 flex flex-col gap-3 border-t border-border pt-6 font-mono text-[11px] text-text-tertiary sm:flex-row sm:items-center sm:justify-between">
+                <span>© {year ?? ""} Pratyush Rastogi</span>
+                <a href="#top" className="link-hover self-start sm:self-auto">
+                  Back to top ↑
+                </a>
               </div>
             </div>
-          </div>
+          </footer>
 
-          <div className="text-right">
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-text-tertiary">
-              Open for collaboration & roles
-            </p>
-            <p className="mt-4 text-xs text-text-tertiary opacity-50">
-              © {mounted ? new Date().getFullYear() : "2025"} Pratyush Rastogi.
-              Handcrafted with intent.
-            </p>
-          </div>
-        </div>
-      </footer>
+          <FloatingConsultButton
+            buttonSize={112}
+            imageSize={64}
+            position={{ bottom: "1.5rem", right: "1.5rem" }}
+            revolvingText="BOOK A CALL · 30 MIN · BOOK A CALL · 30 MIN · "
+            ctaButtonAction={() => window.open(SITE.calendar, "_blank", "noopener,noreferrer")}
+            imageSrc="https://github.com/pratyush2514.png?size=160"
+            imageAlt="Pratyush Rastogi"
+            popupHeading="30 minutes."
+            popupBadgeText="Free"
+            popupDescription="A short call about a role, a project, or a problem you are working through. Pick a time that suits you."
+            ctaButtonText="Pick a time"
+          />
 
-      <FloatingConsultButton
-        ctaButtonAction={() =>
-          window.open(CALCOM_URL, "_blank", "noopener,noreferrer")
-        }
-        imageSrc="https://design.cal.com/~gitbook/image?url=https%3A%2F%2F2607815040-files.gitbook.io%2F%7E%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252FpmUOqZjfGqNkiPmqgnMv%252Fuploads%252FWIZxsSWIHr9tS5JyNxfv%252Fimage.png%3Falt%3Dmedia%26token%3D8c767397-829e-46d4-a670-929749474e35&width=300&dpr=4&quality=100&sign=696ce3d2&sv=2"
-        imageAlt="Pratyush Rastogi"
-        popupHeading="Let's build something."
-        popupDescription="Schedule a 30-minute session to discuss AI integration, automation workflows, or full-stack architectural challenges. No strings attached—just technical depth and design taste."
-        ctaButtonText="Schedule Call"
-      />
-
-      <GitHubStreak />
-    </main>
+          <GitHubStreak />
+        </main>
+      </MotionConfig>
     </LazyMotion>
   );
 }

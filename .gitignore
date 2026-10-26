@@ -40,3 +40,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# hairline look outputs (figure sources live in hairline/*.js)
+hairline/*.html
+hairline/*.png
+.claude
+.agents
+skills-lock.json

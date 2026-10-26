@@ -111,7 +111,7 @@ export const GitHubStreak = () => {
         onClick={() => setOpen((v) => !v)}
         aria-label="Toggle GitHub activity"
         aria-expanded={open}
-        className="group fixed right-0 top-1/2 z-50 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-xl border border-r-0 border-border bg-bg/80 py-4 pl-3 pr-2.5 backdrop-blur-sm transition-colors duration-300 hover:bg-bg-secondary"
+        className="group fixed right-0 top-1/2 z-50 hidden -translate-y-1/2 md:flex flex-col items-center gap-2 rounded-l-xl border border-r-0 border-border bg-bg/80 py-4 pl-3 pr-2.5 backdrop-blur-sm transition-colors duration-300 hover:bg-bg-secondary"
       >
         <Github
           size={16}

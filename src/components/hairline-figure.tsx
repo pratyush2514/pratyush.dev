@@ -144,7 +144,13 @@ export function HairlineFigure({
       {caption && (
         <figcaption className="mt-2 flex items-center justify-between gap-4 font-mono text-[11px] text-text-tertiary">
           <span>{caption}</span>
-          <span className="tabular-nums text-text-secondary" aria-hidden="true">
+          <span
+            className={cn(
+              "tabular-nums transition-colors duration-300",
+              read === "rest" ? "text-text-tertiary" : "text-emerald-600 dark:text-emerald-400"
+            )}
+            aria-hidden="true"
+          >
             {read}
           </span>
         </figcaption>

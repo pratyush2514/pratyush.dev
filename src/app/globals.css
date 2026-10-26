@@ -29,9 +29,11 @@
     --color-accent: #292524;
     --color-border: #e7e5e4;
 
-    /* Hairline figures share the page's stone palette. */
+    /* Hairline figures share the page's stone palette, with one emerald
+       accent for whatever is lit: the chosen part and the lamp. */
     --hairline-plate: var(--color-bg);
-    --hairline-hi: #1c1917;
+    --hairline-hi: #059669;
+    --hairline-glyph: #a8a29e;
     --hairline-edge: #a8a29e;
     --hairline-mid: #d6d3d1;
     --hairline-lo: #e7e5e4;
@@ -46,7 +48,8 @@
     --color-accent: #fafaf9;
     --color-border: #292524;
 
-    --hairline-hi: #e7e5e4;
+    --hairline-hi: #34d399;
+    --hairline-glyph: #78716c;
     --hairline-edge: #57534e;
     --hairline-mid: #3a3633;
     --hairline-lo: #292524;
@@ -127,4 +130,16 @@
   .link-hover:hover::after {
     @apply origin-left scale-x-100;
   }
+}
+
+/* Keycap legends: quiet until their key is chosen, then the accent. Unlayered
+   on purpose: the Hairline kernel injects an unlayered sheet, which would beat
+   anything inside a Tailwind layer. */
+[data-hairline] > svg .glyph {
+  stroke: var(--hairline-glyph);
+  stroke-width: 1.1;
+}
+
+[data-hairline] > svg .glyph.hi {
+  stroke: var(--hairline-hi);
 }

@@ -49,7 +49,7 @@ export function ProjectPreview({
           loading="lazy"
           decoding="async"
           draggable={false}
-          className="absolute inset-x-0 top-0 w-full select-none transition-transform duration-[1400ms] ease-out-expo group-hover:duration-[7000ms] group-hover:ease-in-out group-hover:[transform:translateY(var(--travel))] motion-reduce:!transform-none"
+          className="preview-shot absolute inset-x-0 top-0 w-full select-none transition-transform duration-[1400ms] ease-out-expo group-hover:duration-[7000ms] group-hover:ease-in-out group-hover:[transform:translateY(var(--travel))] motion-reduce:!transform-none"
           style={{ ["--travel" as string]: `-${travel.toFixed(2)}%` }}
         />
       </div>

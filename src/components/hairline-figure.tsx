@@ -75,7 +75,7 @@ export function HairlineFigure({
   stageClassName,
 }: {
   name: string;
-  caption?: string;
+  caption?: React.ReactNode;
   autoplay?: boolean;
   className?: string;
   stageClassName?: string;

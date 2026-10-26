@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AnimatePresence,
   LazyMotion,
   MotionConfig,
   domAnimation,
@@ -8,7 +9,7 @@ import {
   useScroll,
   useSpring,
 } from "framer-motion";
-import { ArrowUpRight, Check, Copy, Download, Github, Linkedin } from "lucide-react";
+import { ArrowUpRight, Check, Copy, Download, Github, Linkedin, Menu, X } from "lucide-react";
 import { ThemeToggleButton } from "@/components/theme-toggle";
 import { FloatingConsultButton } from "@/components/floating-consult-button";
 import { GitHubStreak } from "@/components/github-streak";
@@ -219,7 +220,7 @@ const SectionHead = ({
   title: React.ReactNode;
   aside?: React.ReactNode;
 }) => (
-  <m.div {...fadeUp} className="mb-14 md:mb-20">
+  <m.div {...fadeUp} className="mb-10 md:mb-20">
     <div className="mb-8 flex items-center gap-3 border-t border-border pt-5">
       <Label>{index}</Label>
       <span className="h-px w-6 bg-border" aria-hidden="true" />
@@ -256,7 +257,7 @@ const ExternalLink = ({ href, children }: { href: string; children: React.ReactN
     href={href}
     target="_blank"
     rel="noopener noreferrer"
-    className="group/link inline-flex items-center gap-1 text-sm font-medium text-text"
+    className="group/link -my-3 inline-flex items-center gap-1 py-3 text-sm font-medium text-text"
   >
     <span className="link-hover">{children}</span>
     <ArrowUpRight
@@ -269,7 +270,7 @@ const ExternalLink = ({ href, children }: { href: string; children: React.ReactN
 const FeaturedProject = ({ project, i }: { project: Project; i: number }) => (
   <m.article
     {...fadeUp}
-    className="group grid items-center gap-8 md:grid-cols-12 md:gap-12"
+    className="group grid grid-cols-1 items-center gap-7 md:grid-cols-12 md:gap-12 [&>*]:min-w-0"
   >
     <div className={`md:col-span-5 ${i % 2 ? "md:order-2" : ""}`}>
       <div className="mb-5 flex items-center gap-3">
@@ -320,7 +321,7 @@ const CopyEmail = () => {
         });
       }}
       aria-label="Copy email address"
-      className="inline-flex size-9 items-center justify-center rounded-full border border-border text-text-secondary transition-colors hover:border-text-tertiary hover:text-text"
+      className="inline-flex size-11 items-center justify-center rounded-full border border-border text-text-secondary transition-colors hover:border-text-tertiary hover:text-text"
     >
       {copied ? <Check size={15} /> : <Copy size={15} />}
     </button>
@@ -330,12 +331,27 @@ const CopyEmail = () => {
 export default function Home() {
   const [year, setYear] = useState<number | null>(null);
   const [active, setActive] = useState<string>("");
+  const [menuOpen, setMenuOpen] = useState(false);
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, { stiffness: 140, damping: 30, mass: 0.4 });
 
   useEffect(() => {
     setYear(new Date().getFullYear());
   }, []);
+
+  // The phone menu closes on Escape, and when the page grows past phone width.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMenuOpen(false);
+    const wide = window.matchMedia("(min-width: 640px)");
+    const onWide = () => wide.matches && setMenuOpen(false);
+    window.addEventListener("keydown", onKey);
+    wide.addEventListener("change", onWide);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      wide.removeEventListener("change", onWide);
+    };
+  }, [menuOpen]);
 
   // Light up the nav link for the section in the middle of the viewport.
   useEffect(() => {
@@ -357,12 +373,12 @@ export default function Home() {
       <MotionConfig reducedMotion="user">
         <main className="relative min-h-screen overflow-x-clip">
           {/* Navigation */}
-          <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4">
+          <header className="fixed inset-x-0 top-0 z-50 flex flex-col items-center px-3 pt-3 sm:px-4 sm:pt-4">
             <nav
               aria-label="Primary"
               className="relative flex w-full max-w-6xl items-center justify-between gap-4 overflow-hidden rounded-full border border-border/80 bg-bg/70 py-1.5 pl-5 pr-1.5 backdrop-blur-xl backdrop-saturate-150"
             >
-              <a href="#top" className="text-sm font-semibold tracking-tight">
+              <a href="#top" className="py-2.5 text-sm font-semibold tracking-tight" onClick={() => setMenuOpen(false)}>
                 pratyush<span className="text-text-tertiary">.dev</span>
               </a>
               <div className="flex items-center gap-1">
@@ -391,7 +407,17 @@ export default function Home() {
                 >
                   Resume
                 </a>
-                <ThemeToggleButton className="ml-1 size-9" />
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((v) => !v)}
+                  aria-expanded={menuOpen}
+                  aria-controls="mobile-menu"
+                  aria-label={menuOpen ? "Close menu" : "Open menu"}
+                  className="inline-flex size-10 items-center justify-center rounded-full text-text-secondary transition-colors hover:text-text sm:hidden"
+                >
+                  {menuOpen ? <X size={18} /> : <Menu size={18} />}
+                </button>
+                <ThemeToggleButton className="ml-1 size-10" />
               </div>
               <m.span
                 aria-hidden="true"
@@ -399,10 +425,56 @@ export default function Home() {
                 className="absolute inset-x-6 bottom-0 h-px origin-left bg-text/30"
               />
             </nav>
+
+            <AnimatePresence>
+              {menuOpen && (
+                <m.div
+                  id="mobile-menu"
+                  initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                  transition={{ duration: 0.35, ease: EASE_OUT_EXPO }}
+                  className="mt-2 w-full origin-top rounded-3xl border border-border/80 bg-bg/90 p-2 backdrop-blur-xl backdrop-saturate-150 sm:hidden"
+                >
+                  <ul>
+                    {NAV.map(({ id, label }, i) => (
+                      <li key={id}>
+                        <a
+                          href={`#${id}`}
+                          onClick={() => setMenuOpen(false)}
+                          className="flex items-baseline justify-between rounded-2xl px-4 py-3.5 transition-colors active:bg-bg-secondary"
+                        >
+                          <span className="font-serif text-3xl tracking-tight">{label}</span>
+                          <span className="font-mono text-[11px] text-text-tertiary">0{i + 1}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-1 grid grid-cols-2 gap-2 border-t border-border p-2 pt-3">
+                    <a
+                      href={SITE.resume}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-full border border-border py-3 text-sm font-medium"
+                    >
+                      <Download size={15} /> Resume
+                    </a>
+                    <a
+                      href={SITE.calendar}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-full bg-text py-3 text-sm font-medium text-bg"
+                    >
+                      Book a call <ArrowUpRight size={15} />
+                    </a>
+                  </div>
+                </m.div>
+              )}
+            </AnimatePresence>
           </header>
 
           {/* Hero */}
-          <section id="top" className="relative mx-auto max-w-6xl px-6 pb-24 pt-36 md:px-10 md:pt-44">
+          <section id="top" className="relative mx-auto max-w-6xl px-6 pb-8 pt-32 md:px-10 md:pb-24 md:pt-44">
             <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
               <div className="lg:col-span-7">
                 <m.div
@@ -482,7 +554,12 @@ export default function Home() {
                 <HairlineFigure
                   name="stack"
                   autoplay
-                  caption="fig. 1 — move across to open the stack"
+                  caption={
+                    <>
+                      <span className="[@media(hover:none)]:hidden">fig. 1 — move across to open the stack</span>
+                      <span className="hidden [@media(hover:none)]:inline">fig. 1 — tap across to open the stack</span>
+                    </>
+                  }
                   className="mx-auto max-w-[520px]"
                   stageClassName="scale-[1.15] lg:scale-[1.3]"
                 />
@@ -491,25 +568,28 @@ export default function Home() {
           </section>
 
           {/* Work */}
-          <section id="work" className="mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
+          <section id="work" className="mx-auto max-w-6xl px-6 py-20 md:px-10 md:py-32">
             <SectionHead
               index="01"
               label="Work"
               title="Selected work"
               aside={
                 <p className="max-w-xs text-sm text-text-secondary">
-                  Things I designed, built and shipped. Hover a preview to scroll the page.
+                  Things I designed, built and shipped.
+                  <span className="hidden [@media(hover:hover)]:inline">
+                    {" "}Hover a preview to scroll the page.
+                  </span>
                 </p>
               }
             />
 
-            <div className="space-y-24 md:space-y-32">
+            <div className="space-y-20 md:space-y-32">
               {featured.map((project, i) => (
                 <FeaturedProject key={project.title} project={project} i={i} />
               ))}
             </div>
 
-            <m.div {...fadeUp} className="mt-28">
+            <m.div {...fadeUp} className="mt-20 md:mt-28">
               <div className="mb-2 flex items-center justify-between">
                 <Label>Also built</Label>
               </div>
@@ -554,7 +634,7 @@ export default function Home() {
 
           {/* About */}
           <section id="about" className="border-y border-border bg-bg-secondary">
-            <div className="mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
+            <div className="mx-auto max-w-6xl px-6 py-20 md:px-10 md:py-32">
               <SectionHead index="02" label="About" title="How I work" />
 
               <div className="grid gap-16 lg:grid-cols-12 lg:gap-12">
@@ -589,7 +669,7 @@ export default function Home() {
 
               <m.dl
                 {...fadeUp}
-                className="mt-20 grid gap-x-8 gap-y-10 border-t border-border pt-10 sm:grid-cols-2 lg:grid-cols-4"
+                className="mt-14 grid gap-x-8 gap-y-8 md:mt-20 md:gap-y-10 border-t border-border pt-10 sm:grid-cols-2 lg:grid-cols-4"
               >
                 {toolbox.map((group) => (
                   <div key={group.label}>
@@ -606,7 +686,7 @@ export default function Home() {
           </section>
 
           {/* Experience */}
-          <section id="experience" className="mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
+          <section id="experience" className="mx-auto max-w-6xl px-6 py-20 md:px-10 md:py-32">
             <SectionHead
               index="03"
               label="Experience"
@@ -647,7 +727,7 @@ export default function Home() {
               ))}
             </ol>
 
-            <m.div {...fadeUp} id="resume" className="mt-20 grid gap-10 md:grid-cols-12 md:gap-8">
+            <m.div {...fadeUp} id="resume" className="mt-14 grid gap-5 md:mt-20 md:grid-cols-12 md:gap-8">
               <div className="md:col-span-3">
                 <Label>Education</Label>
               </div>
@@ -677,7 +757,7 @@ export default function Home() {
 
           {/* Contact */}
           <footer id="contact" className="border-t border-border">
-            <div className="mx-auto max-w-6xl px-6 pb-12 pt-24 md:px-10 md:pt-32">
+            <div className="mx-auto max-w-6xl px-6 pb-10 pt-20 md:px-10 md:pt-32">
               <m.div {...fadeUp}>
                 <div className="mb-8 flex items-center gap-3">
                   <Label>04</Label>
@@ -731,15 +811,18 @@ export default function Home() {
                 </div>
               </m.div>
 
-              <div className="mt-28 flex flex-col gap-3 border-t border-border pt-6 font-mono text-[11px] text-text-tertiary sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-16 flex flex-col gap-1 md:mt-28 border-t border-border pt-6 font-mono text-[11px] text-text-tertiary sm:flex-row sm:items-center sm:justify-between">
                 <span>© {year ?? ""} Pratyush Rastogi</span>
-                <a href="#top" className="link-hover self-start sm:self-auto">
+                <a href="#top" className="link-hover -my-3 self-start py-3 sm:self-auto">
                   Back to top ↑
                 </a>
               </div>
             </div>
           </footer>
 
+          {/* Desktop only: on a phone it would sit over the text, and the
+              hero, menu and contact section already offer the call. */}
+          <div className="hidden md:block">
           <FloatingConsultButton
             buttonSize={112}
             imageSize={64}
@@ -753,6 +836,7 @@ export default function Home() {
             popupDescription="A short call about a role, a project, or a problem you are working through. Pick a time that suits you."
             ctaButtonText="Pick a time"
           />
+          </div>
 
           <GitHubStreak />
         </main>

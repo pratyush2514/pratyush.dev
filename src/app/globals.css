@@ -145,3 +145,20 @@
 [data-hairline] > svg .glyph.hi {
   stroke: var(--hairline-hi);
 }
+
+/* Touch screens have no hover, so project previews scroll through the page on
+   their own, slowly, there and back. */
+@media (hover: none) and (prefers-reduced-motion: no-preference) {
+  .preview-shot {
+    animation: preview-scroll 14s ease-in-out 1.5s infinite alternate;
+  }
+}
+
+@keyframes preview-scroll {
+  0%, 12% {
+    transform: translateY(0);
+  }
+  88%, 100% {
+    transform: translateY(var(--travel));
+  }
+}

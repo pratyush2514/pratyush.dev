@@ -36,6 +36,7 @@ import {
   SiJsonwebtokens,
   SiRust,
   SiLinux,
+  SiX,
 } from "react-icons/si";
 
 // Maps a tag label to its official brand mark (monochrome, inherits currentColor).
@@ -717,6 +718,15 @@ export default function Home() {
                     className="inline-flex size-11 items-center justify-center rounded-full border border-border transition-colors duration-300 hover:bg-text hover:text-bg"
                   >
                     <Linkedin size={18} />
+                  </a>
+                  <a
+                    href={SITE.x}
+                    target="_blank"
+                    rel="noopener noreferrer me"
+                    aria-label={`X (${SITE.xHandle})`}
+                    className="inline-flex size-11 items-center justify-center rounded-full border border-border transition-colors duration-300 hover:bg-text hover:text-bg"
+                  >
+                    <SiX size={15} aria-hidden="true" />
                   </a>
                 </div>
               </m.div>

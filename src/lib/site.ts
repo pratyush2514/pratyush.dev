@@ -13,6 +13,8 @@ export const SITE = {
   email: "rastogipratyush630@gmail.com",
   github: "https://github.com/pratyush2514",
   linkedin: "https://linkedin.com/in/pratyushrastogi05",
+  x: "https://x.com/Pratyusshmd",
+  xHandle: "@Pratyusshmd",
   resume:
     "https://nqysiprpmxxombsdvdkh.supabase.co/storage/v1/object/public/portfolio/PratyushRastogiResume.pdf",
   calendar: "https://cal.com/pratyush-rastogi-wck12m/30min",

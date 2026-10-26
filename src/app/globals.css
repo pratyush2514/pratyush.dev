@@ -33,10 +33,11 @@
        accent for whatever is lit: the chosen part and the lamp. */
     --hairline-plate: var(--color-bg);
     --hairline-hi: #059669;
-    --hairline-glyph: #a8a29e;
-    --hairline-edge: #a8a29e;
-    --hairline-mid: #d6d3d1;
-    --hairline-lo: #e7e5e4;
+    --hairline-glyph: #8a817b;
+    --hairline-edge: #78716c;
+    --hairline-mid: #b5aea9;
+    --hairline-lo: #d6d3d1;
+    --hairline-stroke: 1.05;
   }
 
   .dark {
@@ -53,6 +54,7 @@
     --hairline-edge: #57534e;
     --hairline-mid: #3a3633;
     --hairline-lo: #292524;
+    --hairline-stroke: 0.9;
   }
 
   html {

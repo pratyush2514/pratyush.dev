@@ -70,6 +70,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    site: SITE.xHandle,
+    creator: SITE.xHandle,
     title: SITE.title,
     description: SITE.description,
     images: ["/og.png"],
@@ -96,7 +98,7 @@ const personJsonLd = {
   email: `mailto:${SITE.email}`,
   jobTitle: "Software Engineer",
   alumniOf: { "@type": "CollegeOrUniversity", name: "Graphic Era University" },
-  sameAs: [SITE.github, SITE.linkedin],
+  sameAs: [SITE.github, SITE.linkedin, SITE.x],
   knowsAbout: ["Full-stack development", "Java", "TypeScript", "Go", "Rust", "PostgreSQL", "AI tooling"],
 };
 

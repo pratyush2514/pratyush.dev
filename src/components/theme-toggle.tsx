@@ -2,9 +2,11 @@
 
 import { m } from "framer-motion";
 import { useTheme } from "next-themes";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useSyncExternalStore } from "react";
 
 import { cn } from "@/lib/utils";
+
+const noopSubscribe = () => () => {};
 
 export const useThemeToggle = ({
   variant = "circle",
@@ -17,19 +19,14 @@ export const useThemeToggle = ({
   blur?: boolean;
   gifUrl?: string;
 } = {}) => {
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted) {
-      setIsDark(resolvedTheme === "dark");
-    }
-  }, [resolvedTheme, mounted]);
+  const { setTheme, resolvedTheme } = useTheme();
+  // True only on the client, after hydration.
+  const mounted = useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
+  const isDark = mounted && resolvedTheme === "dark";
 
   const styleId = "theme-transition-styles";
 
@@ -51,7 +48,6 @@ export const useThemeToggle = ({
     if (!mounted) return;
     
     const newIsDark = !isDark;
-    setIsDark(newIsDark);
 
     const animation = createAnimation(variant, start, blur, gifUrl);
     updateStyles(animation.css);
@@ -68,11 +64,10 @@ export const useThemeToggle = ({
     }
 
     document.startViewTransition(switchTheme);
-  }, [theme, setTheme, variant, start, blur, gifUrl, updateStyles, isDark, mounted]);
+  }, [setTheme, variant, start, blur, gifUrl, updateStyles, isDark, mounted]);
 
   const setCrazyLightTheme = useCallback(() => {
     if (!mounted) return;
-    setIsDark(false);
 
     const animation = createAnimation(variant, start, blur, gifUrl);
     updateStyles(animation.css);
@@ -93,7 +88,6 @@ export const useThemeToggle = ({
 
   const setCrazyDarkTheme = useCallback(() => {
     if (!mounted) return;
-    setIsDark(true);
 
     const animation = createAnimation(variant, start, blur, gifUrl);
     updateStyles(animation.css);
@@ -115,9 +109,6 @@ export const useThemeToggle = ({
   const setCrazySystemTheme = useCallback(() => {
     if (!mounted || typeof window === "undefined") return;
 
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    setIsDark(prefersDark);
-
     const animation = createAnimation(variant, start, blur, gifUrl);
     updateStyles(animation.css);
 
@@ -136,7 +127,6 @@ export const useThemeToggle = ({
   return {
     mounted,
     isDark,
-    setIsDark,
     toggleTheme,
     setCrazyLightTheme,
     setCrazyDarkTheme,

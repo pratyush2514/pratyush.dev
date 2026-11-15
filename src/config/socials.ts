@@ -1,0 +1,76 @@
+import type { SocialLink } from "@/config/types";
+import { SITE } from "@/lib/site";
+
+export const socialSectionConfig = {
+  title: "Socials",
+};
+
+export const socialsConfig: SocialLink[] = [
+  {
+    id: "github",
+    platform: "GitHub",
+    handle: "@pratyush2514",
+    href: SITE.github,
+    icon: "github",
+    action: "external",
+    order: 1,
+    enabled: true,
+  },
+  {
+    id: "linkedin",
+    platform: "LinkedIn",
+    handle: "in/pratyushrastogi05",
+    href: SITE.linkedin,
+    icon: "linkedin",
+    action: "external",
+    tooltipDefault: "Connect on LinkedIn",
+    order: 2,
+    enabled: true,
+  },
+  {
+    id: "x",
+    platform: "X (Twitter)",
+    handle: SITE.xHandle,
+    href: SITE.x,
+    icon: "x",
+    action: "external",
+    tooltipDefault: "Message on X",
+    order: 3,
+    enabled: true,
+  },
+  {
+    id: "email",
+    platform: "Email",
+    handle: SITE.email,
+    href: `mailto:${SITE.email}`,
+    icon: "gmail",
+    action: "copy",
+    copyValue: SITE.email,
+    shortcutKey: "C",
+    tooltipDefault: "Copy email",
+    order: 4,
+    enabled: true,
+  },
+  {
+    id: "calendar",
+    platform: "Book a call",
+    handle: "30 min on cal.com",
+    href: SITE.calendar,
+    icon: "calendar",
+    action: "external",
+    tooltipDefault: "Pick a time",
+    order: 5,
+    enabled: true,
+  },
+  {
+    id: "resume",
+    platform: "Resume",
+    handle: "PDF",
+    href: SITE.resume,
+    icon: "resume",
+    action: "external",
+    tooltipDefault: "Open my resume",
+    order: 6,
+    enabled: true,
+  },
+];

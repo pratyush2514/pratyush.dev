@@ -1,9 +1,20 @@
-import type { MetadataRoute } from "next";
-import { SITE } from "@/lib/site";
+import { projectsConfig } from "@/config/projects";
+import { siteConfig } from "@/config/site";
+import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    { url: SITE.url, lastModified: new Date(), changeFrequency: "monthly", priority: 1 },
-    { url: `${SITE.url}/design`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-  ];
+  const baseEntries = siteConfig.meta.sitemap.map((item) => ({
+    ...item,
+  }));
+
+  const projectEntries: MetadataRoute.Sitemap = projectsConfig
+    .filter((p) => p.enabled !== false)
+    .map((p) => ({
+      url: `${siteConfig.meta.url}/project/${p.id}`,
+      lastModified: new Date(`${p.year}-01-01T00:00:00Z`),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    }));
+
+  return [...baseEntries, ...projectEntries];
 }

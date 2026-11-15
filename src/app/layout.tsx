@@ -1,12 +1,29 @@
-import type { Metadata, Viewport } from "next";
-import "./globals.css";
-import VisualEditsMessenger from "@/visual-edits/VisualEditsMessenger";
-import { ThemeProvider } from "next-themes";
-import Script from "next/script";
-import { Geist_Mono, Instrument_Serif, Plus_Jakarta_Sans } from "next/font/google";
+import { ThemeProvider } from "@/components/shared/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { siteConfig } from "@/config/site";
 import { SITE } from "@/lib/site";
+import { cn } from "@/lib/utils";
+import { Analytics } from "@vercel/analytics/next";
+import type { Metadata, Viewport } from "next";
+import { DM_Sans, Geist_Mono, Instrument_Serif } from "next/font/google";
+import "./globals.css";
 
-// Self-hosted, preloaded fonts (no render-blocking @import, no layout shift).
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#141414" },
+  ],
+};
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
 const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
   weight: "400",
@@ -15,91 +32,102 @@ const instrumentSerif = Instrument_Serif({
   display: "swap",
 });
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-plus-jakarta-sans",
-  display: "swap",
-});
-
 const geistMono = Geist_Mono({
-  subsets: ["latin"],
   variable: "--font-geist-mono",
+  subsets: ["latin"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE.url),
+  metadataBase: new URL(siteConfig.meta.url),
   title: {
-    default: SITE.title,
-    template: `%s — ${SITE.name}`,
+    default: siteConfig.meta.title,
+    template: siteConfig.meta.titleTemplate,
   },
-  description: SITE.description,
+  description: siteConfig.meta.description,
   applicationName: SITE.name,
-  authors: [{ name: SITE.name, url: SITE.url }],
-  creator: SITE.name,
-  keywords: [
-    "Pratyush Rastogi",
-    "software engineer",
-    "full-stack developer",
-    "portfolio",
-    "Next.js",
-    "Spring Boot",
-    "TypeScript",
-    "Rust",
-    "Go",
-    "PostgreSQL",
-  ],
-  alternates: { canonical: "/" },
+  keywords: siteConfig.meta.keywords,
+  authors: siteConfig.meta.authors,
+  creator: siteConfig.meta.creator,
+  publisher: siteConfig.meta.publisher,
+  classification: siteConfig.meta.classification,
+  category: siteConfig.meta.category,
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     type: "profile",
+    locale: siteConfig.meta.locale,
     url: "/",
-    siteName: SITE.name,
-    title: SITE.title,
-    description: SITE.description,
-    locale: "en_US",
+    title: siteConfig.meta.title,
+    description: siteConfig.meta.description,
+    siteName: siteConfig.meta.shortTitle,
     firstName: "Pratyush",
     lastName: "Rastogi",
-    images: [
-      {
-        url: "/og.png",
-        width: 1200,
-        height: 630,
-        alt: "Pratyush Rastogi — Software Engineer. An isometric line drawing of a three-layer stack.",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     site: SITE.xHandle,
-    creator: SITE.xHandle,
-    title: SITE.title,
-    description: SITE.description,
-    images: ["/og.png"],
+    creator: siteConfig.meta.twitterCreator,
+    title: siteConfig.meta.title,
+    description: siteConfig.meta.description,
+  },
+  icons: {
+    icon: siteConfig.meta.icon,
+    shortcut: siteConfig.meta.icon,
+    apple: siteConfig.meta.appleIcon,
   },
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    google: siteConfig.meta.googleVerification || undefined,
   },
 };
 
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fafaf9" },
-    { media: "(prefers-color-scheme: dark)", color: "#0c0a09" },
-  ],
-};
-
-const personJsonLd = {
+const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "Person",
-  name: SITE.name,
-  url: SITE.url,
-  email: `mailto:${SITE.email}`,
-  jobTitle: "Software Engineer",
-  alumniOf: { "@type": "CollegeOrUniversity", name: "Graphic Era University" },
-  sameAs: [SITE.github, SITE.linkedin, SITE.x],
-  knowsAbout: ["Full-stack development", "Java", "TypeScript", "Go", "Rust", "PostgreSQL", "AI tooling"],
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${SITE.url}/#website`,
+      url: SITE.url,
+      name: SITE.title,
+      description: SITE.description,
+      publisher: { "@id": `${SITE.url}/#person` },
+    },
+    {
+      "@type": "Person",
+      "@id": `${SITE.url}/#person`,
+      name: SITE.name,
+      url: SITE.url,
+      email: `mailto:${SITE.email}`,
+      jobTitle: "Software Engineer",
+      description: SITE.description,
+      alumniOf: { "@type": "CollegeOrUniversity", name: "Graphic Era University" },
+      knowsAbout: [
+        "Full-stack development",
+        "Java",
+        "Spring Boot",
+        "TypeScript",
+        "Next.js",
+        "Go",
+        "Rust",
+        "PostgreSQL",
+        "AI tooling",
+      ],
+      sameAs: [SITE.github, SITE.linkedin, SITE.x],
+      image: `${SITE.url}${siteConfig.personal.avatar.src}`,
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -110,25 +138,27 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${instrumentSerif.variable} ${plusJakartaSans.variable} ${geistMono.variable}`}
+      className={cn(
+        "bg-background font-sans",
+        dmSans.variable,
+        instrumentSerif.variable,
+      )}
       suppressHydrationWarning
     >
-      <body className="antialiased" suppressHydrationWarning>
+      <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <Script
-          id="orchids-browser-logs"
-          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts/orchids-browser-logs.js"
-          strategy="afterInteractive"
-          data-orchids-project-id="833cc088-1862-449c-b812-21314f3343b3"
-        />
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <div className="grain" />
-          {children}
-          <VisualEditsMessenger />
+      </head>
+      <body className={`${geistMono.variable} antialiased`}>
+        <noscript>
+          <style>{`.no-js-visible { opacity: 1 !important; transform: none !important; filter: none !important; stroke-dashoffset: 0 !important; stroke-dasharray: none !important; }`}</style>
+        </noscript>
+        <ThemeProvider>
+          <TooltipProvider>{children}</TooltipProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );

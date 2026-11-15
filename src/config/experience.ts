@@ -35,18 +35,4 @@ export const experienceConfig: ExperienceItem[] = [
     order: 3,
     enabled: true,
   },
-  {
-    id: "education",
-    role: "B.Sc. Information Technology",
-    company: "Graphic Era University",
-    period: "2022 – 2025",
-    summary: "CGPA 7.64.",
-    highlights: [
-      "Data Science — Great Learning (certified)",
-      "Oracle Java (in progress)",
-      "AWS Solutions Architect (studying)",
-    ],
-    order: 4,
-    enabled: true,
-  },
 ];

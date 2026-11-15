@@ -42,14 +42,42 @@ type GitHubGraphQLResponse = {
   };
 };
 
-export async function fetchGithubData(
+/**
+ * Public, token-free mirror of the contribution calendar scraped from the
+ * GitHub profile page. Used when GITHUB_TOKEN is missing or rejected.
+ */
+async function fetchPublicContributions(username: string): Promise<Contribution[]> {
+  try {
+    const response = await fetch(
+      `https://github-contributions-api.jogruber.de/v4/${encodeURIComponent(username)}?y=last`,
+      { next: { revalidate: 3600 }, signal: AbortSignal.timeout(8000) },
+    );
+    if (!response.ok) {
+      console.error("Public contributions request failed:", response.status);
+      return [];
+    }
+    const json = (await response.json()) as {
+      contributions?: { date: string; count: number }[];
+    };
+    return (json.contributions ?? []).map(({ date, count }) => ({ date, count }));
+  } catch {
+    console.error("Public contributions request failed.");
+    return [];
+  }
+}
+
+export async function fetchGithubData(username: string): Promise<Contribution[]> {
+  const fromToken = await fetchWithToken(username);
+  return fromToken.length ? fromToken : fetchPublicContributions(username);
+}
+
+async function fetchWithToken(
   username: string,
 ): Promise<Contribution[]> {
   const token = process.env.GITHUB_TOKEN;
   if (!token) {
-    throw new Error("GITHUB_TOKEN is missing");
+    return [];
   }
-
   const now = new Date();
   const from = new Date(now);
   from.setFullYear(now.getFullYear() - 1);

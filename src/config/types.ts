@@ -18,6 +18,7 @@ export type SectionId =
   | "insights"
   | "sponsors"
   | "design"
+  | "education"
   | "contact";
 
 export interface SectionFlags {
@@ -140,7 +141,7 @@ export interface FooterConfig {
   };
 }
 
-export type AboutGreetings = Record<"morning" | "afternoon" | "evening", string>;
+export type AboutGreetings = Record<"morning" | "afternoon" | "evening" | "night", string>;
 
 export interface AboutItem {
   id: string;

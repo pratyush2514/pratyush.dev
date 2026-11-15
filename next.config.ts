@@ -6,6 +6,10 @@ const isDev = process.env.NODE_ENV === "development";
 // straight to a signed Supabase URL from the browser.
 const supabase = (process.env.SUPABASE_URL ?? "https://nqysiprpmxxombsdvdkh.supabase.co").replace(/\/$/, "");
 
+// PostHog ingestion and its asset CDN, for both US and EU clouds.
+const posthog =
+  "https://us.i.posthog.com https://us-assets.i.posthog.com https://eu.i.posthog.com https://eu-assets.i.posthog.com";
+
 const securityHeaders = [
   { key: "X-DNS-Prefetch-Control", value: "on" },
   {
@@ -23,12 +27,12 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://va.vercel-scripts.com`,
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://va.vercel-scripts.com ${posthog}`,
       "style-src 'self' 'unsafe-inline'",
       `img-src 'self' data: blob: ${supabase} https://avatars.githubusercontent.com https://github.com`,
       `media-src 'self' blob: ${supabase}`,
       "font-src 'self' data:",
-      `connect-src 'self' ${supabase} https://api.github.com https://va.vercel-scripts.com https://vitals.vercel-insights.com`,
+      `connect-src 'self' ${supabase} https://api.github.com https://va.vercel-scripts.com https://vitals.vercel-insights.com ${posthog}`,
       // The craft gallery embeds its own static HTML demos from /public/craft.
       "frame-src 'self'",
       "frame-ancestors 'self'",

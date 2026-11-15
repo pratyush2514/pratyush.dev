@@ -6,6 +6,7 @@ export const aboutGreetings: AboutGreetings = {
   morning: "Good morning !",
   afternoon: "Good afternoon !",
   evening: "Good evening !",
+  night: "Good night !",
 };
 
 export const aboutItems: AboutItem[] = [
@@ -123,6 +124,8 @@ export const siteConfig: PortfolioConfig = {
     "skills",
     "about",
     "experience",
+    "education",
+    "insights",
     "github",
     "workflow",
     "contact",
@@ -138,9 +141,10 @@ export const siteConfig: PortfolioConfig = {
     bookmarks: false,
     bookshelf: false,
     certifications: false,
-    insights: false,
+    insights: true,
     sponsors: false,
     experience: true,
+    education: true,
     services: false,
     workflow: true,
     github: true,

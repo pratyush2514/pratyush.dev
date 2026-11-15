@@ -1,10 +1,12 @@
 import { About } from "@/components/landing/about";
 import { CTA } from "@/components/landing/cta";
 import { DesignSection } from "@/components/landing/design-section";
+import { Education } from "@/components/landing/education";
 import { Experience } from "@/components/landing/experience";
 import { Footer } from "@/components/landing/footer";
 import { GitHubSection } from "@/components/landing/github-section";
 import { Hero } from "@/components/landing/hero";
+import { Insights } from "@/components/landing/insights";
 import { ProfileBanner } from "@/components/landing/profile-banner";
 import { HowIWork } from "@/components/landing/how-i-work";
 import { HomeProjectExplorer } from "@/components/landing/home-project-explorer";
@@ -61,6 +63,8 @@ const staticSections: Partial<Record<HomeSection, ReactElement>> = {
     />
   ),
   experience: <Experience />,
+  education: <Education />,
+  insights: <Insights />,
   services: <Services />,
   workflow: <HowIWork />,
   contact: <CTA />,
@@ -76,12 +80,8 @@ export default async function Home() {
     ? orderForShowcase(await getDesigns())
     : [];
 
-  const showGithub =
-    siteConfig.sectionFlags.github && Boolean(process.env.GITHUB_TOKEN);
-
   const isVisible = (id: SectionId) =>
     siteConfig.sectionFlags[id] &&
-    (id !== "github" || showGithub) &&
     (id !== "design" || designs.length > 0) &&
     (id === "github" || id === "design" || Boolean(staticSections[id as HomeSection]));
 

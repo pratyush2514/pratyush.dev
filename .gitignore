@@ -47,3 +47,6 @@ hairline/*.png
 .claude
 .agents
 skills-lock.json
+
+# browser test artifacts
+.playwright-mcp/

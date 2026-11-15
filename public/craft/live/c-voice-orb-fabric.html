@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Voice Orb</title>
+  <style>
+    * {
+      margin: 0;
+      box-sizing: border-box
+    }
+
+    body {
+      height: 100vh;
+      background: #f4f2ef;
+      font-family: -apple-system, "Helvetica Neue", Inter, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none
+    }
+
+    .wrap {
+      display: flex;
+      align-items: center;
+      gap: 56px
+    }
+
+    .orbw {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      flex: none
+    }
+
+    .glow {
+      position: absolute;
+      inset: -50px;
+      border-radius: 50%;
+      filter: blur(40px);
+      opacity: .35;
+      will-change: transform, opacity
+    }
+
+    .orb {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      cursor: pointer;
+      touch-action: none;
+      will-change: transform;
+      box-shadow: 0 26px 50px -18px rgba(30, 20, 10, .38), 0 6px 14px -6px rgba(30, 20, 10, .2)
+    }
+
+    canvas {
+      display: block;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%
+    }
+
+    .ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      pointer-events: none;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .28), inset 0 -16px 28px -14px rgba(0, 0, 0, .28), inset 0 10px 18px -12px rgba(255, 255, 255, .35)
+    }
+
+    .grain {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: .12;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")
+    }
+
+    .list {
+      position: relative;
+      width: 340px;
+      height: 100vh;
+      overflow: hidden;
+      cursor: ns-resize;
+      touch-action: none;
+      -webkit-mask: linear-gradient(transparent, #000 22%, #000 78%, transparent);
+      mask: linear-gradient(transparent, #000 22%, #000 78%, transparent)
+    }
+
+    .it {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      font-size: 21px;
+      transform-origin: left center;
+      letter-spacing: -.01em;
+      white-space: nowrap;
+      cursor: pointer;
+      will-change: transform, opacity
+    }
+
+    .it small {
+      display: block;
+      font-size: 11px;
+      color: #999;
+      letter-spacing: .04em;
+      margin-top: 3px;
+      opacity: 0
+    }
+
+    .it small.fx {
+      margin-top: 1px;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-size: 10px
+    }
+
+    .hint {
+      position: fixed;
+      bottom: 28px;
+      font-size: 11px;
+      color: #aaa;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 0 16px
+    }
+
+    @media (max-width:760px) {
+      .wrap {
+        flex-direction: column;
+        gap: 0
+      }
+
+      .list {
+        width: min(340px, 80vw);
+        height: 44vh
+      }
+
+      .orbw {
+        margin-top: 3vh
+      }
+
+      .hint {
+        bottom: 14px;
+        letter-spacing: .08em
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="orbw">
+      <div class="glow" id="g"></div>
+      <div class="orb" id="o"><canvas id="c"></canvas>
+        <div class="grain"></div>
+        <div class="ring"></div>
+      </div>
+    </div>
+    <div class="list" id="l"></div>
+  </div>
+  <script>
+    /* ---------- voices: colour, fabric, sound ---------- */
+    const V = [
+      { n: 'Ember', m: 'warm · grounded', fab: 'wool knit', snd: 'warm cello', a: [.86, .24, .14], b: [.42, .05, .06], h: [1, .62, .32] },
+      { n: 'Solace', m: 'calm · gentle', fab: 'linen weave', snd: 'soft pad', a: [.62, .78, .95], b: [.28, .42, .78], h: [.92, .96, 1] },
+      { n: 'Juniper', m: 'bright · curious', fab: 'corduroy', snd: 'bright kalimba', a: [.30, .70, .40], b: [.05, .30, .25], h: [.80, .96, .50] },
+      { n: 'Vesper', m: 'low · velvet', fab: 'plum velvet', snd: 'low choir', a: [.36, .14, .56], b: [.08, .03, .18], h: [.85, .45, .85] },
+      { n: 'Aurelia', m: 'radiant · clear', fab: 'silk satin', snd: 'clear glass', a: [.96, .72, .22], b: [.62, .30, .06], h: [1, .93, .65] },
+      { n: 'Maple', m: 'friendly · round', fab: 'ribbed knit', snd: 'round felt keys', a: [.80, .44, .24], b: [.40, .17, .10], h: [.98, .78, .55] },
+      { n: 'Nimbus', m: 'airy · soft', fab: 'cotton gauze', snd: 'airy chimes', a: [.82, .84, .92], b: [.50, .56, .72], h: [1, 1, 1] },
+      { n: 'Onyx', m: 'deep · steady', fab: 'black twill', snd: 'deep drone', a: [.16, .18, .26], b: [.02, .02, .05], h: [.55, .62, .85] },
+      { n: 'Coral', m: 'playful · warm', fab: 'terry loops', snd: 'playful flute', a: [.98, .46, .52], b: [.72, .14, .34], h: [1, .78, .68] },
+      { n: 'Noir', m: 'dark · sleek', fab: 'pebbled leather', snd: 'midnight piano', a: [.14, .13, .14], b: [.01, .01, .02], h: [.80, .72, .60] },
+      { n: 'Cypress', m: 'rich · woodland', fab: 'herringbone tweed', snd: 'mellow harp', a: [.12, .36, .28], b: [.01, .10, .09], h: [.62, .82, .55] }];
+    const BASE = [220, 262, 294, 196, 330, 247, 349, 147, 392, 131, 175], OCT = [1, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2], SC = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21];
+    const LV = [.5, .85, .9, .55, .35, .3, .9, .8, .5, .9, .9], AT = [.8, 1.4, .02, 1.2, .9, .6, .02, 1.5, .5, .02, .02], RL = [.7, 1, .5, .9, .6, .5, .4, 1, .4, .6, .6];
+    const RUSTLE = [1400, 1700, 2400, 900, 5200, 1500, 2800, 700, 1000, 1100, 2000];
+    const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+    let cur = 0; const l = document.getElementById('l');
+    let moved = false;
+    V.forEach((v, i) => { const d = document.createElement('div'); d.className = 'it'; d.innerHTML = v.n + '<small>' + v.m + '</small><small class="fx">' + v.fab + ' · ' + v.snd + '</small>'; d.onclick = () => { if (!moved) go(i) }; l.appendChild(d) });
+    const its = [...l.children], g = document.getElementById('g');
+
+    /* ---------- audio ---------- */
+    let AC, BUS, NB, FIRST = false;
+    function ac() { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state == 'suspended') AC.resume(); return AC }
+    function nbuf() { if (NB) return NB; const a = ac(), b = a.createBuffer(1, a.sampleRate * 2, a.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++)d[i] = Math.random() * 2 - 1; return NB = b }
+    function bus() {
+      if (BUS) return BUS; const a = ac(), inn = a.createGain(), master = a.createGain(), comp = a.createDynamicsCompressor(), rv = a.createConvolver(), wet = a.createGain(), an = a.createAnalyser();
+      master.gain.value = .8; comp.threshold.value = -20; comp.ratio.value = 3; comp.attack.value = .02; comp.release.value = .4;
+      const L = Math.floor(a.sampleRate * 3.4), buf = a.createBuffer(2, L, a.sampleRate);
+      for (let c = 0; c < 2; c++) { const d = buf.getChannelData(c); let lp = 0; for (let i = 0; i < L; i++) { lp += ((Math.random() * 2 - 1) - lp) * (.35 - .28 * i / L); d[i] = lp * Math.pow(1 - i / L, 2.6) * 3 } }
+      rv.buffer = buf; wet.gain.value = .5; an.fftSize = 256;
+      inn.connect(master); inn.connect(rv); rv.connect(wet); wet.connect(master); master.connect(comp); comp.connect(an); comp.connect(a.destination);
+      return BUS = { inn, an, data: new Uint8Array(an.fftSize) }
+    }
+    const OS = (type, f, det) => { const o = AC.createOscillator(); o.type = type; o.frequency.value = f; if (det) o.detune.value = det; o.start(); return o };
+    const G = v => { const g = AC.createGain(); g.gain.value = v; return g };
+    const F = (type, f, q) => { const b = AC.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q != null) b.Q.value = q; return b };
+    const noise = () => { const s = AC.createBufferSource(); s.buffer = nbuf(); s.loop = true; s.start(0, Math.random() * 1.5); return s };
+    const to = (p, v, tau) => FIRST ? (p.value = v) : p.setTargetAtTime(v, AC.currentTime, tau);
+
+    function pl(dest, f, vel, b) {
+      const t = AC.currentTime, o = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), g2 = AC.createGain(), lp = F('lowpass', 1500 + b * 3500, .5);
+      o.frequency.value = f; o2.frequency.value = f * 5.4;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.5 * vel, t + .006); g.gain.setTargetAtTime(0, t + .01, .35);
+      g2.gain.setValueAtTime(0, t); g2.gain.linearRampToValueAtTime(.08 * vel, t + .003); g2.gain.setTargetAtTime(0, t + .005, .05);
+      o.connect(g).connect(lp); o2.connect(g2).connect(lp); lp.connect(dest); o.start(t); o2.start(t); o.stop(t + 2.4); o2.stop(t + .6)
+    }
+    function bell(dest, f, vel) { const t = AC.currentTime;[[1, .3, 1.1], [2.76, .09, .6], [5.4, .03, .3]].forEach(([r, a, d]) => { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = f * r; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a * vel, t + .004); g.gain.setTargetAtTime(0, t + .01, d); o.connect(g).connect(dest); o.start(t); o.stop(t + d * 7 + .1) }) }
+    function bowl(dest, f) { const t = AC.currentTime;[[1, 1, 3.2], [2.76, .38, 2.2], [5.4, .14, 1.2], [8.9, .05, .7]].forEach(([r, a, d]) => [0, 1.4].forEach(dt => { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = f * r + dt * r * .5; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a * .22, t + .03); g.gain.setTargetAtTime(0, t + .05, d); o.connect(g).connect(dest); o.start(t); o.stop(t + d * 6 + .2) })) }
+
+    function pk(dest, f, vel, cut, at, tau) { const t = AC.currentTime, lp = F('lowpass', cut, .4);[[1, .5, tau], [2, .14, tau * .65], [3, .04, tau * .4]].forEach(([r, a, d]) => { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = f * r; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a * vel, t + at); g.gain.setTargetAtTime(0, t + at + .01, d); o.connect(g).connect(lp); o.start(t); o.stop(t + d * 7 + .1) }); lp.connect(dest) }
+    /* each voice: build(out,firstState) -> {src:[nodes to stop],up(state),timer?} ; state = {f,idx,b(brightness),sp(speed),ch(note changed),nf(i)} */
+    const VO = [
+      /* Ember: warm bowed cello */
+      out => {
+        const lp = F('lowpass', 700, .8), o1 = OS('sawtooth', 110, -7), o2 = OS('sawtooth', 110, 7), sb = OS('sine', 55), vb = OS('sine', 4.4), vg = G(0), nz = noise(), nb = F('bandpass', 400, 1.5);
+        vb.connect(vg); vg.connect(o1.detune); vg.connect(o2.detune);
+        o1.connect(G(.16)).connect(lp); o2.connect(G(.16)).connect(lp); sb.connect(G(.4)).connect(lp); nz.connect(nb).connect(G(.012)).connect(lp); lp.connect(out);
+        return { src: [o1, o2, sb, vb, nz], up(s) { to(o1.frequency, s.f, .15); to(o2.frequency, s.f, .15); to(sb.frequency, s.f / 2, .15); to(nb.frequency, s.f * 3, .2); to(lp.frequency, 300 + s.b * s.b * 1300, .15); to(vg.gain, 6 + s.sp * 14, .3); to(vb.frequency, 4.2 + s.sp * 1.5, .3) } }
+      },
+      /* Solace: soft sine pad with a slow swell */
+      out => {
+        const R = [1, 1.5, 2], os = R.map(r => OS('sine', 262 * r)), m = G(1), lp = F('lowpass', 1000, .3), sw = OS('sine', .09), nz = noise(), nb = F('bandpass', 1200, .8);
+        os.forEach((o, k) => o.connect(G([.5, .22, .14][k])).connect(lp)); lp.connect(m); nz.connect(nb).connect(G(.01)).connect(m); sw.connect(G(.25)).connect(m.gain); m.connect(out);
+        return { src: [...os, sw, nz], up(s) { os.forEach((o, k) => to(o.frequency, s.f * R[k], .4)); to(lp.frequency, 600 + s.b * 1400, .4); to(nb.frequency, s.f * 3, .4) } }
+      },
+      /* Juniper: soft kalimba arpeggio */
+      (out, s0) => {
+        const v = { src: [], cur: s0, k: 0 }; v.up = s => { v.cur = s; if (s.ch && !FIRST) pl(out, s.f, .9, Math.min(1, s.b + .4)) };
+        v.timer = setInterval(() => { if (Math.random() < .2) return; const s = v.cur; pl(out, s.nf(Math.min(9, s.idx + [0, 1, 2, 3, 4, 2][Math.random() * 6 | 0])), .5 + Math.random() * .25, Math.min(1, s.b + .4)) }, 340); pl(out, s0.f, 1, .9); return v
+      },
+      /* Vesper: velvet choir */
+      out => {
+        const lp = F('lowpass', 700, .5), os = [-10, 0, 10].map(d => OS('sawtooth', 98, d)), sb = OS('sine', 49), f1 = F('bandpass', 350, 5), f2 = F('bandpass', 800, 6), m = G(1), tr = OS('sine', .27);
+        os.forEach(o => o.connect(G(.14)).connect(lp)); lp.connect(f1); lp.connect(f2); f1.connect(G(1.8)).connect(m); f2.connect(G(1.1)).connect(m); sb.connect(G(.25)).connect(m); tr.connect(G(.18)).connect(m.gain); m.connect(out);
+        return { src: [...os, sb, tr], up(s) { os.forEach(o => to(o.frequency, s.f, .2)); to(lp.frequency, 500 + s.b * 600, .3); to(sb.frequency, s.f / 2, .2); to(f1.frequency, 330 + s.b * 420, .3); to(f2.frequency, 700 + s.b * 500, .3) } }
+      },
+      /* Aurelia: glass harmonica */
+      out => {
+        const R = [1, 2, 3.01, 4.97], A = [.5, .22, .1, .05], pk = A.map(a => G(a * .5)), m = G(1), tr = OS('sine', 5.2), os = [];
+        R.forEach((r, k) => [0, 3.5].forEach(d => { const o = OS('sine', 440 * r, d); o.connect(pk[k]); os.push([o, r]) })); pk.forEach(p => p.connect(m)); tr.connect(G(.12)).connect(m.gain); m.connect(out);
+        return { src: [...os.map(x => x[0]), tr], up(s) { os.forEach(([o, r]) => to(o.frequency, s.f * r, .12)); to(pk[1].gain, .12 * (.3 + s.b), .2); to(pk[2].gain, .06 * (.2 + s.b), .2); to(pk[3].gain, .03 * (.1 + s.b), .2) } }
+      },
+      /* Maple: felt electric piano (soft FM) */
+      out => {
+        const c = OS('sine', 220), mo = OS('sine', 220), mg = G(150), c2 = OS('sine', 440), g2 = G(.18), lp = F('lowpass', 2200, .4), tm = OS('sine', 3.6), m = G(1);
+        mo.connect(mg).connect(c.frequency); c.connect(m); c2.connect(g2).connect(m); m.connect(lp).connect(out); tm.connect(G(.12)).connect(m.gain);
+        return { src: [c, mo, c2, tm], up(s) { to(c.frequency, s.f, .1); to(c2.frequency, s.f * 2, .1); to(mo.frequency, s.f, .1); to(mg.gain, s.f * (.12 + s.b * .5), .2) } }
+      },
+      /* Nimbus: air and wind chimes */
+      (out, s0) => {
+        const v = { src: [], cur: s0 }, nz = noise(), bp = F('bandpass', 2200, .7), ng = G(0), pad = OS('triangle', 700); nz.connect(bp).connect(ng).connect(out); pad.connect(G(.02)).connect(out); v.src.push(nz, pad);
+        const chime = () => bell(out, v.cur.nf(Math.min(9, v.cur.idx + [2, 3, 4][Math.random() * 3 | 0])) * 2, .3 + Math.random() * .3);
+        v.up = s => { v.cur = s; to(ng.gain, .012 + s.sp * .035, .3); to(bp.frequency, 1400 + s.b * 2600, .3); to(pad.frequency, s.f * 2, .6); if (s.ch && !FIRST) chime() };
+        v.timer = setInterval(() => { if (Math.random() < .05 + v.cur.sp * .3) chime() }, 260); chime(); return v
+      },
+      /* Onyx: deep steady drone */
+      out => {
+        const lp = F('lowpass', 220, .5), a = OS('sawtooth', 73, -4), b2 = OS('sawtooth', 73, 4), su = OS('sine', 73), fi = OS('sine', 110);
+        a.connect(G(.14)).connect(lp); b2.connect(G(.14)).connect(lp); su.connect(G(.45)).connect(lp); fi.connect(G(.07)).connect(lp); lp.connect(out);
+        return { src: [a, b2, su, fi], up(s) { to(a.frequency, s.f, .5); to(b2.frequency, s.f, .5); to(su.frequency, s.f, .5); to(fi.frequency, s.f * 1.5, .5); to(lp.frequency, 150 + s.b * 250, .5) } }
+      },
+      /* Coral: breathy flute */
+      out => {
+        const o = OS('sine', 392), o2 = OS('triangle', 784), g2 = G(.25), vb = OS('sine', 6.2), vg = G(0), nz = noise(), nb = F('bandpass', 800, 2.5), ng = G(.03), m = G(1), lp = F('lowpass', 2600, .3), t = AC.currentTime;
+        vb.connect(vg); vg.connect(o.detune); vg.connect(o2.detune); o.connect(m); o2.connect(g2).connect(m); nz.connect(nb).connect(ng).connect(m); m.connect(lp).connect(out);
+        vg.gain.setValueAtTime(0, t); vg.gain.linearRampToValueAtTime(14, t + 1.4);
+        return { src: [o, o2, vb, nz], up(s) { if (s.ch && !FIRST) { const t = AC.currentTime;[o, o2].forEach(x => { x.detune.setValueAtTime(-300, t); x.detune.setTargetAtTime(0, t, .05) }) } to(o.frequency, s.f, .08); to(o2.frequency, s.f * 2, .08); to(nb.frequency, s.f * 2.5, .1); to(ng.gain, .012 + s.b * .04, .15); to(lp.frequency, 1200 + s.b * 2600, .2) } }
+      },
+      /* Noir: slow midnight piano over a low hum */
+      (out, s0) => {
+        const v = { src: [], cur: s0 }, su = OS('sine', 65); su.connect(G(.08)).connect(out); v.src.push(su);
+        v.up = s => { v.cur = s; to(su.frequency, s.f / 2, .5); if (s.ch && !FIRST) pk(out, s.f, .8, 1100, .012, .9) };
+        v.timer = setInterval(() => { if (Math.random() < .25) return; const s = v.cur; pk(out, s.nf(Math.min(9, s.idx + [0, 2, 4, 1][Math.random() * 4 | 0])), .5 + Math.random() * .2, 1100, .012, .9) }, 1300); pk(out, s0.f, .9, 1100, .012, .9); return v
+      },
+      /* Cypress: mellow harp */
+      (out, s0) => {
+        const v = { src: [], cur: s0, k: 0 };
+        v.up = s => { v.cur = s; if (s.ch && !FIRST) pk(out, s.f, .8, 2800, .004, 1.2) };
+        v.timer = setInterval(() => { const s = v.cur; pk(out, s.nf(Math.min(9, s.idx + [0, 1, 2, 3, 4, 3, 2, 1][v.k++ % 8])), .55, 2800, .004, 1.2) }, 720); pk(out, s0.f, .9, 2800, .004, 1.2); return v
+      }];
+
+    function startVoice(i, s0, quick) {
+      bus(); const out = G(0); out.connect(BUS.inn); const v = VO[i](out, s0); v.out = out; v.i = i;
+      out.gain.setTargetAtTime(LV[i], AC.currentTime, quick ? Math.min(AT[i], .12) : AT[i]); FIRST = true; v.up(s0); FIRST = false; return v
+    }
+    function endVoice(v) {
+      const t = AC.currentTime; v.out.gain.cancelScheduledValues(t); v.out.gain.setTargetAtTime(0, t, RL[v.i]); if (v.timer) clearInterval(v.timer);
+      setTimeout(() => { v.src.forEach(o => { try { o.stop() } catch (e) { } }); v.out.disconnect() }, RL[v.i] * 6000 + 300)
+    }
+    function rustle() {
+      ac(); bus(); const t = AC.currentTime, n = AC.createBufferSource(), bp = F('bandpass', RUSTLE[cur], .9), gg = G(0); n.buffer = nbuf(); n.connect(bp).connect(gg).connect(BUS.inn);
+      gg.gain.setValueAtTime(0, t); gg.gain.linearRampToValueAtTime(.07, t + .025); gg.gain.setTargetAtTime(0, t + .03, .06); n.start(t, Math.random() * 1.5); n.stop(t + .5)
+    }
+
+    /* ---------- state, springs ---------- */
+    let idxS = 4; const P = { on: 0, x: 0, y: 0 }, sprg = () => ({ x: 0, v: 0 });
+    const spring = (o, t, k, c, dt) => { o.v += (k * (t - o.x) - c * o.v) * dt; o.x += o.v * dt };
+    const posS = sprg(), dentS = sprg(), sqS = sprg(), tXS = sprg(), tYS = sprg(); posS.x = 0;
+    let S = null, SPD = 0, spdAcc = 0, pulse = 0, AMP = 0, yaw = 0, yawV = 0, pit = 0, pitV = 0, TX = 0, TY = 0, fa = 0, fb = 0, kbRaw = 1;
+    const st = { a: V[0].a.slice(), b: V[0].b.slice(), h: V[0].h.slice() }; let tgt = V[0];
+    function sObj(init) {
+      const raw = (P.x + 1) / 2 * 9; let ch = false; if (init) idxS = Math.round(raw); else if (Math.abs(raw - idxS) > .62) { const n = clamp(Math.round(raw), 0, 9); if (n != idxS) { idxS = n; ch = true } }
+      idxS = clamp(idxS, 0, 9); const vi = cur, nf = i => BASE[vi] / 2 * OCT[vi] * Math.pow(2, SC[clamp(i, 0, 9)] / 12); return { idx: idxS, f: nf(idxS), b: 1 - (P.y + 1) / 2, sp: SPD, ch, nf }
+    }
+    function go(i) {
+      i = clamp(i, 0, V.length - 1); if (i == cur) return; cur = i; tgt = V[i]; if (kbRaw > .5) { fa = fb; kbRaw = 0 } fb = i; pulse = 1; rustle();
+      if (S) { endVoice(S); S = startVoice(cur, sObj(true)) }
+    }
+    let wa = 0, wl = 0, wt; addEventListener('wheel', e => { wa += e.deltaY; if (Math.abs(wa) > 40 && Date.now() - wl > 140) { go(cur + Math.sign(wa)); wa = 0; wl = Date.now() } clearTimeout(wt); wt = setTimeout(() => wa = 0, 160) }, { passive: true });
+    function preview() { ac(); P.x = 0; P.y = -.2; const s = sObj(true), v = startVoice(cur, s, true); pulse = 1.4; setTimeout(() => endVoice(v), 900) }
+    addEventListener('keydown', e => { if (e.key == 'ArrowDown') go(cur + 1); if (e.key == 'ArrowUp') go(cur - 1); if (e.key == ' ' && !e.repeat) { e.preventDefault(); preview() } });
+    let ly = null; l.addEventListener('pointerdown', e => { ly = e.clientY; moved = false });
+    l.addEventListener('pointermove', e => { if (ly == null) return; const d = e.clientY - ly; if (Math.abs(d) > 48) { moved = true; go(cur - Math.sign(d)); ly = e.clientY } });
+    addEventListener('pointerup', () => ly = null);
+
+    const o = document.getElementById('o'); let downT = 0, holdT;
+    function pos(e) { const r = o.getBoundingClientRect(); P.x = clamp((e.clientX - r.left) / r.width * 2 - 1, -1, 1); P.y = clamp((e.clientY - r.top) / r.height * 2 - 1, -1, 1) }
+    o.onpointerdown = e => { ac(); o.setPointerCapture(e.pointerId); pos(e); P.on = 1; downT = Date.now(); holdT = setTimeout(() => { if (P.on && !S) { S = startVoice(cur, sObj(true)); if (navigator.vibrate) navigator.vibrate(6) } }, 170) };
+    o.onpointermove = e => { if (!P.on) return; const ox = P.x, oy = P.y; pos(e); const dx = P.x - ox, dy = P.y - oy; spdAcc += Math.hypot(dx, dy); yawV += -dx * 1.4; pitV += -dy * 1.2; };
+    o.onpointerup = o.onpointercancel = () => { clearTimeout(holdT); P.on = 0; if (S) { endVoice(S); S = null } else if (Date.now() - downT < 170) preview() };
+
+    /* ---------- WebGL fabric sphere ---------- */
+    const cv = document.getElementById('c'), W = 640; cv.width = cv.height = W;
+    const gl = cv.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: false });
+    const vs = 'attribute vec2 p;void main(){gl_Position=vec4(p,0,1);}';
+    const fs = `precision highp float;
+uniform float W,t,f0,f1,kb,yaw,pit,pv,pu,amp;uniform vec2 tp;uniform vec3 A,B,H,L;
+float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*vn(p);p=p*2.02+7.1;a*=.5;}return v;}
+float pick(float id,float a,float b,float c,float d,float e,float f,float g,float h,float i,float j,float k){return id<.5?a:id<1.5?b:id<2.5?c:id<3.5?d:id<4.5?e:id<5.5?f:id<6.5?g:id<7.5?h:id<8.5?i:id<9.5?j:k;}
+float hf(float id,vec2 q){
+ if(id<.5){vec2 c=q*vec2(15.,11.),f=fract(c);float x=abs(f.x*2.-1.);float leg=1.-smoothstep(0.,.34,abs(x-(.12+f.y*.8)));float oc=smoothstep(0.,.2,f.y)*smoothstep(1.,.8,f.y);return clamp(leg*(.5+.5*oc)*.92+.1*vn(q*70.),0.,1.);}
+ if(id<1.5){vec2 c=q*34.,i=floor(c),f=fract(c);float par=mod(i.x+i.y,2.);float th=par<.5?sin(3.1416*f.y):sin(3.1416*f.x);float sl=par<.5?vn(vec2(q.x*5.,q.y*120.)):vn(vec2(q.x*120.,q.y*5.));return clamp(pow(th,.8)*(.62+.5*sl)+.04*vn(q*90.),0.,1.);}
+ if(id<2.5){float c=q.y*26.+(fbm(q*3.)-.5)*.6;float r=sin(fract(c)*3.1416);return clamp(pow(r,.55)*(.75+.25*vn(vec2(q.x*70.,c*3.))),0.,1.);}
+ if(id<3.5){float pat=fbm(q*5.+fbm(q*2.5)*2.);return clamp(pat*.9+.1*vn(q*60.),0.,1.);}
+ if(id<4.5){float ph=q.x*4.5+fbm(q*vec2(2.,3.))*3.+q.y*1.5;return clamp(.5+.4*sin(ph*1.6)+.02*sin(q.y*220.),0.,1.);}
+ if(id<5.5){float c=q.x*24.+sin(q.y*8.)*.3;float r=.5+.5*cos(c*6.2832);float st=.82+.18*sin(q.y*110.+floor(c)*1.7);return clamp(pow(r,1.3)*st,0.,1.);}
+ if(id<6.5){vec2 c=q*24.,i=floor(c),f=fract(c);float par=mod(i.x+i.y,2.);float th=par<.5?sin(3.1416*f.y):sin(3.1416*f.x);return clamp(.35*th+.65*fbm(q*6.),0.,1.);}
+ if(id<7.5){vec2 c=q*40.;float rg=sin((c.x+c.y)*1.5)*.5+.5;float ys=.5+.5*sin(c.y*6.2832);return clamp(rg*.65+ys*.25+.1*vn(q*100.),0.,1.);}
+ if(id<8.5){vec2 c=q*20.;float row=floor(c.y);c.x+=row*.37;vec2 i=floor(c),f=fract(c)-.5;vec2 j=vec2(h21(i),h21(i+3.7))*.28-.14;float lp=smoothstep(.52,.02,length(f-j));return clamp(pow(lp,1.1)*(.65+.35*h21(i+9.1)),0.,1.);}
+ if(id<9.5){vec2 c=q*38.,i=floor(c),f=fract(c);float dm=2.;for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 g=vec2(float(x),float(y));vec2 o=vec2(h21(i+g),h21(i+g+17.3));dm=min(dm,length(g+o*.8+.1-f));}return clamp(pow(max(0.,1.-dm*.9),1.4)+.05*vn(q*150.),0.,1.);}
+ vec2 c=q*22.;float bnd=mod(floor(c.x*.5),2.);float dg=bnd<.5?c.x+c.y:c.x-c.y;float rg=sin(dg*2.2)*.5+.5;return clamp(rg*.7+.2*vn(q*90.)+.1,0.,1.);
+}
+vec3 cloth(float id,vec2 q,vec3 N,float z){
+ float fsx=pick(id,15.,34.,26.,4.,1.2,24.,12.,40.,20.,38.,22.),e=.32/fsx,dt=smoothstep(0.,.38,z);
+ float h0=mix(.5,hf(id,q),dt),hx=mix(.5,hf(id,q+vec2(e,0.)),dt),hy=mix(.5,hf(id,q+vec2(0.,e)),dt);
+ float bk=pick(id,1.15,.6,.95,.3,.45,1.,.75,.8,1.3,.9,.85)*(1.+amp*.6);
+ vec3 n=normalize(N-vec3(hx-h0,hy-h0,0.)*bk*1.8);
+ float d=pow(dot(n,L)*.5+.5,1.35);
+ float ao=mix(1.,.5+.5*h0,pick(id,1.,.8,1.,.35,.25,1.,.55,.8,1.,1.,.9));
+ vec3 alb=mix(B,A,.3+.7*h0);
+ alb*=.9+.2*fbm(q*4.+id*3.1);
+ alb=mix(alb,H,pow(h0,3.)*pick(id,.35,.15,.3,.22,0.,.3,.2,.35,.4,.3,.35));
+ vec3 col=alb*(.3+.9*d)*ao;
+ col+=H*pow(h0,2.)*d*pick(id,.04,.03,.05,.2,.08,.05,0.,.2,.05,.22,.2);
+ vec3 hh=normalize(L+vec3(0.,0.,1.));
+ float s=pow(max(dot(n,hh),0.),pick(id,18.,14.,20.,10.,34.,16.,10.,12.,16.,40.,14.));
+ col+=mix(H,vec3(1.),.65)*s*pick(id,.12,.08,.14,.2,.7,.1,.08,.1,.14,.55,.12);
+ float rim=pow(1.-max(N.z,0.),pick(id,3.,3.,3.,2.,2.5,3.,3.,3.,3.,2.5,3.));
+ col+=mix(H,vec3(1.),.45)*rim*pick(id,.12,.1,.12,.75,.3,.12,.35,.18,.15,.35,.14)*(.4+.6*d);
+ float fz=(id<.5||(id>2.5&&id<3.5)||(id>5.5&&id<6.5)||(id>7.5&&id<8.5))?1.:0.;
+ col+=mix(H,vec3(1.),.5)*pow(1.-max(N.z,0.),2.)*(vn(q*170.)-.4)*.5*fz;
+ if(id>2.5&&id<3.5)col*=1.-.28*N.z;
+ if(id>6.5&&id<7.5)col+=step(.93,vn(q*130.))*.1;
+ return col;
+}
+void main(){
+ vec2 uv=gl_FragCoord.xy/(W*.5)-1.;float r=length(uv);if(r>1.)discard;
+ float z=sqrt(1.-r*r);vec3 P=vec3(uv,z);
+ vec2 dv=uv-tp;float dd=max(length(dv),.001);float dent=exp(-dd*dd*5.5)*pv;
+ vec3 N=normalize(P-vec3(dv,0.)*dent*.6);
+ float cy=cos(yaw),sy=sin(yaw);P=vec3(cy*P.x+sy*P.z,P.y,-sy*P.x+cy*P.z);
+ float cp=cos(pit),sp=sin(pit);P=vec3(P.x,cp*P.y-sp*P.z,sp*P.y+cp*P.z);
+ float lat=asin(clamp(P.y,-1.,1.));vec2 q=vec2(atan(P.x,P.z)*cos(lat),lat);
+ float ring=sin(dd*26.-t*7.)*exp(-dd*2.4)*(pu*.5+pv*.3);
+ q+=(dv/dd)*ring*.012-dv*dent*.05;
+ vec3 col=kb>.999?cloth(f1,q,N,z):mix(cloth(f0,q,N,z),cloth(f1,q,N,z),kb);
+ col*=1.-dent*.16;
+ col+=pow(max(0.,1.-dd),2.4)*pv*.1*mix(H,vec3(1.),.5);
+ col*=1.-smoothstep(.62,1.,r)*.2;
+ col=mix(col,mix(H,vec3(1.),.6),pow(1.-z,3.)*.1);
+ float e=smoothstep(1.,.99,r);gl_FragColor=vec4(clamp(col,0.,1.)*e,e);}`;
+    function sh(t, s) { const x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(x)); return x }
+    const pg = gl.createProgram(); gl.attachShader(pg, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(pg, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pg); gl.useProgram(pg);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    const ap = gl.getAttribLocation(pg, 'p'); gl.enableVertexAttribArray(ap); gl.vertexAttribPointer(ap, 2, gl.FLOAT, false, 0, 0);
+    const U = {};['W', 't', 'f0', 'f1', 'kb', 'yaw', 'pit', 'pv', 'pu', 'amp', 'tp', 'A', 'B', 'H', 'L'].forEach(k => U[k] = gl.getUniformLocation(pg, k));
+    gl.viewport(0, 0, W, W); gl.clearColor(0, 0, 0, 0); gl.uniform1f(U.W, W);
+
+    /* ---------- list layout ---------- */
+    const mixc = (a, b, k) => a.map((v, i) => v + (b[i] - v) * k);
+    function lay(p) {
+      its.forEach((e, i) => {
+        const o = i - p, a = Math.abs(o), th = o * .15, Rr = 440, x = Rr - Rr * Math.cos(th), y = Rr * Math.sin(th), w = Math.max(0, 1 - a);
+        e.style.transform = `translate(${x}px,calc(-50% + ${y}px)) rotate(${-th * 1.1}rad) scale(${1 - Math.min(a, 4) * .05})`;
+        e.style.opacity = Math.max(0, 1 - a * .2).toFixed(3); const bl = Math.max(0, a - 1) * .5; e.style.filter = bl > .05 ? `blur(${bl.toFixed(2)}px)` : 'none';
+        const c = mixc([105, 105, 105], V[i].b.map(x => x * 235), w); e.style.color = `rgb(${c.map(Math.round)})`;
+        const sm = e.children; sm[0].style.opacity = sm[1].style.opacity = clamp(1 - a * 1.6, 0, 1).toFixed(3)
+      })
+    }
+
+    /* ---------- main loop ---------- */
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let last = performance.now(), time = 0, lastUp = 0, Ls = [-.4, .55, .7];
+    function frame(now) {
+      const dt = Math.min(.05, (now - last) / 1000) || .016; last = now; time += dt;
+      const kc = 1 - Math.exp(-dt * 3);['a', 'b', 'h'].forEach(k => st[k] = mixc(st[k], tgt[k], kc));
+      if (kbRaw < 1) kbRaw = Math.min(1, kbRaw + dt / 1.2); const kbE = kbRaw * kbRaw * (3 - 2 * kbRaw);
+      pulse *= Math.exp(-dt * 2.2);
+      SPD += (Math.min(1, spdAcc / dt * .35) - SPD) * (1 - Math.exp(-dt * 6)); spdAcc = 0;
+      spring(posS, cur, 150, 19, dt); spring(dentS, P.on ? 1 : 0, 220, 16, dt); spring(sqS, (P.on ? -.04 : 0) + pulse * .015, 200, 15, dt);
+      spring(tXS, P.on ? P.x : 0, 120, 14, dt); spring(tYS, P.on ? P.y : 0, 120, 14, dt);
+      const tk = 1 - Math.exp(-dt * 14); TX += (P.x - TX) * tk; TY += (P.y - TY) * tk;
+      if (BUS) { BUS.an.getByteTimeDomainData(BUS.data); let s = 0; for (const b of BUS.data) { const v = (b - 128) / 128; s += v * v } AMP += (clamp(Math.sqrt(s / BUS.data.length) * 7, 0, 1) - AMP) * .15 } else AMP *= .9;
+      /* rotation: idle drift, drag impulses, inertia */
+      const idle = calm ? 0 : .1 + AMP * .08; yaw += yawV * dt; yawV += (idle - yawV) * (1 - Math.exp(-dt * 1.7)); yawV = clamp(yawV, -7, 7);
+      pit += pitV * dt; pitV *= Math.exp(-dt * 3); pit += (0 - pit) * (1 - Math.exp(-dt * .9)); pit = clamp(pit, -.4, .4);
+      if (S && now - lastUp > 30) { lastUp = now; const s = sObj(false); S.up(s); if (s.ch) pulse = Math.min(1.2, pulse + .4) }
+      /* light: slow orbit, follows the finger while pressed */
+      const dn = clamp(dentS.x, 0, 1), lt = [-.45 + .25 * Math.sin(time * .35), .55 + .15 * Math.cos(time * .27), .7], lf = [TX * .8, -TY * .8 + .1, .6];
+      let Lv = lt.map((v, i) => v + (lf[i] - v) * dn); const ln = Math.hypot(...Lv); Lv = Lv.map(v => v / ln);
+      /* uniforms */
+      gl.uniform1f(U.t, time); gl.uniform1f(U.f0, fa); gl.uniform1f(U.f1, fb); gl.uniform1f(U.kb, kbE); gl.uniform1f(U.yaw, yaw); gl.uniform1f(U.pit, pit);
+      gl.uniform1f(U.pv, clamp(dentS.x, -.2, 1.2)); gl.uniform1f(U.pu, pulse); gl.uniform1f(U.amp, AMP); gl.uniform2f(U.tp, TX, -TY);
+      gl.uniform3fv(U.A, st.a); gl.uniform3fv(U.B, st.b); gl.uniform3fv(U.H, st.h); gl.uniform3fv(U.L, Lv);
+      gl.clear(gl.COLOR_BUFFER_BIT); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      /* dom */
+      const br = calm ? 0 : Math.sin(time * 1.3) * .006, sx = 1 + sqS.x + pulse * .02 + AMP * .02 + br, sy = 1 + sqS.x * .85 + pulse * .02 + AMP * .02 + br;
+      o.style.transform = `perspective(700px) translate(${tXS.x * 4}px,${tYS.x * 4}px) rotateY(${tXS.x * dn * 9}deg) rotateX(${-tYS.x * dn * 9}deg) scale(${sx},${sy})`;
+      const ac3 = st.a.map(x => x * 255 | 0); g.style.background = `radial-gradient(circle,rgba(${ac3},.9),transparent 65%)`; g.style.opacity = .32 + AMP * .3 + pulse * .1; g.style.transform = `scale(${1 + AMP * .12 + pulse * .05})`;
+      document.body.style.background = `rgb(${[244, 242, 239].map((v, i) => Math.round(v * .93 + ac3[i] * .07))})`;
+      lay(posS.x); requestAnimationFrame(frame)
+    }
+    lay(0); requestAnimationFrame(frame);
+  </script>
+</body>
+
+</html>

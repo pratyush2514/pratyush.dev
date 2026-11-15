@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Toggle</title><style>
+*{box-sizing:border-box}body{margin:0;height:100vh;display:grid;place-items:center;background:#e9eef5;transition:background .8s;font-family:system-ui}
+body.on{background:#0b1020}
+.t{position:relative;width:260px;height:104px;border-radius:60px;border:0;padding:0;cursor:pointer;overflow:hidden;background:linear-gradient(#5cb8ff,#9fd8ff);box-shadow:inset 0 6px 14px rgba(0,0,0,.25),0 18px 40px rgba(60,120,200,.35);transition:background .8s,box-shadow .8s;outline:none}
+.t:focus-visible{box-shadow:0 0 0 4px #fff8,inset 0 6px 14px rgba(0,0,0,.25)}
+.on .t{background:linear-gradient(#141b3a,#2a2f5e);box-shadow:inset 0 6px 14px rgba(0,0,0,.6),0 18px 50px rgba(120,100,255,.35)}
+.k{position:absolute;top:10px;left:10px;width:84px;height:84px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff7b0,#ffcb2e 60%,#f59e0b);box-shadow:0 0 0 12px #fff3,0 0 0 26px #fff2,0 0 0 42px #ffffff12,inset -6px -8px 12px rgba(0,0,0,.15);transition:left .7s cubic-bezier(.68,-.45,.27,1.45),background .7s,box-shadow .7s,transform .7s;z-index:3}
+.on .k{left:166px;background:radial-gradient(circle at 35% 30%,#f4f6ff,#c9cfe6 65%,#9aa3c4);transform:rotate(-200deg);box-shadow:0 0 0 12px #fff1,0 0 0 26px #ffffff0a,0 0 30px #c9d3ff88,inset -6px -8px 12px rgba(0,0,0,.25)}
+.c{position:absolute;border-radius:50%;background:#8f97b8;box-shadow:inset 2px 2px 3px rgba(0,0,0,.3);opacity:0;transition:opacity .5s .2s}
+.on .c{opacity:1}
+.c1{width:20px;height:20px;top:18px;left:40px}.c2{width:12px;height:12px;top:50px;left:22px}.c3{width:9px;height:9px;top:56px;left:52px}
+.cl{position:absolute;background:#fff;border-radius:40px;transition:transform .8s cubic-bezier(.5,0,.2,1.3),opacity .6s;z-index:2}
+.cl::before,.cl::after{content:"";position:absolute;background:#fff;border-radius:50%}
+.cl1{width:90px;height:30px;right:24px;bottom:16px}.cl1::before{width:40px;height:40px;left:14px;top:-22px}.cl1::after{width:30px;height:30px;left:44px;top:-14px}
+.cl2{width:60px;height:20px;right:90px;bottom:8px;opacity:.85}.cl2::before{width:26px;height:26px;left:12px;top:-14px}
+.on .cl{transform:translateY(90px);opacity:0}
+.s{position:absolute;background:#fff;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);transform:translateY(-80px) scale(.3);opacity:0;transition:transform .7s cubic-bezier(.3,1.6,.5,1),opacity .5s}
+.on .s{transform:none;opacity:1;animation:tw 2.4s infinite ease-in-out}
+@keyframes tw{50%{opacity:.3;transform:scale(.7)}}
+.lbl{margin-top:28px;text-align:center;letter-spacing:.3em;font-size:12px;color:#5a6b85;transition:color .8s}.on .lbl{color:#9aa6d6}
+</style></head><body><div><button class="t" id="t" role="switch" aria-checked="false" aria-label="Dark mode">
+<span class="s" style="width:12px;height:12px;left:40px;top:20px;transition-delay:.1s"></span><span class="s" style="width:8px;height:8px;left:80px;top:60px;transition-delay:.2s;animation-delay:.6s"></span><span class="s" style="width:10px;height:10px;left:120px;top:26px;transition-delay:.3s;animation-delay:1.2s"></span><span class="s" style="width:6px;height:6px;left:30px;top:70px;transition-delay:.25s;animation-delay:.3s"></span><span class="s" style="width:7px;height:7px;left:140px;top:72px;transition-delay:.35s;animation-delay:1.8s"></span>
+<span class="cl cl2"></span><span class="cl cl1"></span>
+<span class="k"><span class="c c1"></span><span class="c c2"></span><span class="c c3"></span></span>
+</button><div class="lbl" id="l">DAY</div></div>
+<script>const t=document.getElementById('t'),l=document.getElementById('l');t.onclick=()=>{const o=document.body.classList.toggle('on');t.setAttribute('aria-checked',o);l.textContent=o?'NIGHT':'DAY'}</script></body></html>

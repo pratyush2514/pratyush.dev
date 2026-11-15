@@ -1,0 +1,87 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0}body{background:radial-gradient(1200px 600px at 50% -10%,#1a1d26,#0b0c0f);color:#cfd3dc;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;min-height:100vh;display:grid;place-items:center;padding:30px}
+.card{width:min(900px,100%);background:#111318;border:1px solid #1f232b;border-radius:18px;overflow:hidden;box-shadow:0 40px 80px -30px #000,inset 0 1px #ffffff08;animation:in .8s cubic-bezier(.2,.8,.2,1)}
+@keyframes in{from{opacity:0;transform:translateY(16px) scale(.98)}}
+.hd{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #1f232b}
+.ic{width:22px;height:22px;border-radius:6px;background:#3178c622;color:#6aa8ff;display:grid;place-items:center;font-size:10px;font-weight:700}
+.f{color:#fff;font-weight:600}.p{color:#5b6270}.tag{font-size:10px;padding:2px 7px;border-radius:999px;background:#f5c16c1a;color:#f5c16c;border:1px solid #f5c16c33}
+.st{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:12px}.a{color:#5ee0a0}.r{color:#ff7a8a}
+.sq{display:flex;gap:2px}.sq i{width:7px;height:7px;border-radius:2px;background:#252a33}
+.ib{background:none;border:1px solid #252a33;color:#8a91a0;border-radius:8px;padding:4px 8px;font:inherit;font-size:11px;cursor:pointer;transition:.2s}.ib:hover{color:#fff;border-color:#3a404c}
+.ctl{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid #1f232b;color:#7a8190;font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+.trk{flex:1;position:relative;height:18px;display:flex;align-items:center}
+input[type=range]{width:100%;appearance:none;height:2px;background:linear-gradient(90deg,#ff7a8a,#4a505c 50%,#5ee0a0);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 0 0 5px #ffffff18;cursor:grab;transition:box-shadow .2s}
+input[type=range]:active::-webkit-slider-thumb{box-shadow:0 0 0 9px #ffffff14}
+#pct{width:38px;text-align:right;color:#fff}
+.wrap{display:grid;grid-template-columns:1fr 10px}
+.body{padding:10px 0;position:relative}
+.ln{display:grid;grid-template-columns:36px 36px 18px 1fr auto;padding:0 12px 0 14px;white-space:pre;position:relative;transition:background .3s}
+.n{color:#3c424e;text-align:right;padding-right:8px;font-size:12px}.g{color:#3c424e}
+.ln.del,.ln.add{overflow:hidden;transition:max-height .7s cubic-bezier(.2,.8,.2,1),opacity .5s,transform .7s cubic-bezier(.2,.8,.2,1),filter .5s,background .3s}
+.del{background:linear-gradient(90deg,#ff7a8a12,transparent 75%)}.del .g{color:#ff7a8a}.del .c{color:#e9a3ab}
+.add{background:linear-gradient(90deg,#5ee0a012,transparent 75%)}.add .g{color:#5ee0a0}.add .c{color:#b6f2d1}
+.del::before,.add::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px}.del::before{background:#ff7a8a}.add::before{background:#5ee0a0}
+.del mark{background:#ff7a8a33;color:#ffc2c9;border-radius:3px;text-decoration:line-through;text-decoration-color:#ff7a8a88}
+.add mark{background:#5ee0a033;color:#d9ffe9;border-radius:3px}
+.ln:hover{background:#ffffff0a}.ln.sel{background:#7cc7ff14}
+.act{opacity:0;transform:translateX(6px);transition:.2s;display:flex;gap:4px}.ln:hover .act{opacity:1;transform:none}
+.act b{width:20px;height:20px;border-radius:6px;background:#1c2029;border:1px solid #2a2f39;color:#9aa1ae;display:grid;place-items:center;font-weight:400;cursor:pointer;font-size:11px}.act b:hover{background:#7cc7ff;color:#000}
+.k{color:#c49bff}.s{color:#f5c16c}.fn{color:#7cc7ff}.cm{color:#4f5664;font-style:italic}
+.fold{margin:4px 14px;padding:4px 10px;border:1px dashed #2a2f39;border-radius:8px;color:#5b6270;font-size:11px;cursor:pointer;display:flex;gap:8px;align-items:center;transition:.25s}.fold:hover{color:#cfd3dc;border-color:#3a404c;background:#ffffff05}
+.hidden{display:none}
+.cmt{margin:6px 14px 8px 90px;background:#161921;border:1px solid #252a33;border-radius:12px;padding:10px 12px;font-family:system-ui,sans-serif;font-size:12.5px;animation:pop .45s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes pop{from{opacity:0;transform:translateY(-6px) scale(.97)}}
+.cmt .u{display:flex;gap:8px;align-items:center;color:#fff;font-weight:600;margin-bottom:4px}.av{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#7cc7ff,#c49bff)}
+.cmt .u span{color:#5b6270;font-weight:400}.cmt p{color:#aab0bc}
+.cmt textarea{width:100%;background:#0f1116;border:1px solid #252a33;border-radius:8px;color:#fff;padding:8px;font:inherit;resize:none;outline:none}.cmt textarea:focus{border-color:#7cc7ff}
+.mm{border-left:1px solid #1f232b;position:relative;padding:10px 2px}.mm i{display:block;height:4px;margin:2px 0;border-radius:2px;background:#252a33;transition:opacity .5s}
+.mm .md{background:#ff7a8a}.mm .ma{background:#5ee0a0}
+.ft{display:flex;align-items:center;gap:8px;padding:12px 18px;border-top:1px solid #1f232b}
+.seg{display:flex;background:#0f1116;border:1px solid #252a33;border-radius:999px;padding:3px;position:relative}
+.seg button{position:relative;z-index:1;background:none;border:0;color:#8a91a0;padding:5px 12px;font:inherit;font-size:11px;cursor:pointer;transition:color .3s}.seg button.on{color:#000}
+.pill{position:absolute;top:3px;bottom:3px;background:#fff;border-radius:999px;transition:left .45s cubic-bezier(.2,.8,.2,1),width .45s cubic-bezier(.2,.8,.2,1)}
+.kb{margin-left:auto;color:#4f5664;font-size:11px}.kb kbd{border:1px solid #2a2f39;border-bottom-width:2px;border-radius:4px;padding:0 5px;color:#8a91a0;margin:0 2px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);opacity:0;background:#fff;color:#000;padding:8px 14px;border-radius:999px;font-size:12px;transition:.4s cubic-bezier(.2,.8,.2,1)}.toast.on{opacity:1;transform:translate(-50%,0)}
+</style></head><body><div class="card">
+<div class="hd"><span class="ic">TS</span><span class="p">src/lib/</span><span class="f">session.ts</span><span class="tag">modified</span>
+<div class="st"><span class="a">+5</span><span class="r">−3</span><div class="sq"><i style="background:#5ee0a0"></i><i style="background:#5ee0a0"></i><i style="background:#5ee0a0"></i><i style="background:#ff7a8a"></i><i style="background:#ff7a8a"></i></div><button class="ib" id="cp">Copy</button></div></div>
+<div class="ctl"><span>Before</span><div class="trk"><input id="t" type="range" min="0" max="100" value="50"></div><span>After</span><span id="pct">50%</span></div>
+<div class="wrap"><div class="body" id="b"></div><div class="mm" id="mm"></div></div>
+<div class="ft"><div class="seg" id="seg"><div class="pill"></div><button data-v="0">Before</button><button data-v="50">Diff</button><button data-v="100">After</button></div><button class="ib" id="pl">▶ Replay</button>
+<span class="kb"><kbd>←</kbd><kbd>→</kbd> scrub <kbd>R</kbd> replay <kbd>J</kbd><kbd>K</kbd> jump to change</span></div>
+</div><div class="toast" id="toast"></div><script>
+const L=[[0,'<span class="k">import</span> { verify } <span class="k">from</span> <span class="s">"./jwt"</span>;'],[0,'<span class="k">import</span> { cookies } <span class="k">from</span> <span class="s">"./http"</span>;'],[0,'<span class="k">import</span> type { User } <span class="k">from</span> <span class="s">"./types"</span>;'],[0,''],[0,'<span class="cm">/** Resolve the current user from a request. */</span>'],[0,'<span class="k">export async function</span> <span class="fn">getSession</span>(req) {'],[-1,'  <span class="k">const</span> token = <mark>req.headers.auth</mark>;'],[1,'  <span class="k">const</span> token = <mark>req.cookies.get(<span class="s">"sid"</span>)?.value</mark>;'],[1,'  <span class="k">if</span> (!token) <span class="k">return null</span>;'],[0,''],[-1,'  <span class="k">const</span> <mark>user</mark> = verify(token);'],[-1,'  <span class="k">return</span> <mark>user</mark>;'],[1,'  <span class="cm">// reject expired tokens early</span>'],[1,'  <span class="k">const</span> <mark>{ user, exp }</mark> = <mark><span class="k">await</span></mark> <span class="fn">verify</span>(token);'],[1,'  <span class="k">return</span> <mark>exp > Date.now() ? user : <span class="k">null</span></mark>;'],[0,'}']];
+const b=document.getElementById('b'),mm=document.getElementById('mm');let o=0,n=0;const rows=[];
+const fold=document.createElement('div');fold.className='fold';fold.innerHTML='<span>⋯</span><span>Expand 4 unchanged lines</span>';
+L.forEach(([t,c],i)=>{const d=document.createElement('div');d.className='ln'+(t<0?' del':t>0?' add':'')+(i<4?' hidden fl':'');
+const on=t>0?'':++o,nn=t<0?'':++n;
+d.innerHTML=`<span class="n">${on}</span><span class="n">${nn}</span><span class="g">${t<0?'−':t>0?'+':' '}</span><span class="c">${c||' '}</span><span class="act"><b title="Comment">+</b><b title="Copy line">⧉</b></span>`;
+d.dataset.t=t;if(i==4)b.appendChild(fold);b.appendChild(d);rows.push(d);
+const m=document.createElement('i');m.className=t<0?'md':t>0?'ma':'';mm.appendChild(m);d.mi=m;
+d.onclick=e=>{rows.forEach(r=>r.classList.remove('sel'));d.classList.add('sel');
+const a=e.target.closest('b');if(!a)return;
+if(a.title=='Copy line'){toast('Line copied')}else comment(d)}});
+fold.onclick=()=>{b.querySelectorAll('.fl').forEach((r,i)=>{r.classList.remove('hidden');r.animate([{opacity:0,transform:'translateY(-6px)'},{opacity:1,transform:'none'}],{duration:400,delay:i*50,fill:'backwards',easing:'cubic-bezier(.2,.8,.2,1)'})});fold.remove()};
+function comment(d){if(d.nextElementSibling?.classList.contains('cmt'))return;const c=document.createElement('div');c.className='cmt';
+c.innerHTML='<textarea rows="2" placeholder="Leave a comment… (Enter to post)"></textarea>';d.after(c);const ta=c.querySelector('textarea');ta.focus();
+ta.onkeydown=e=>{e.stopPropagation();if(e.key=='Escape')c.remove();if(e.key=='Enter'&&!e.shiftKey){e.preventDefault();if(!ta.value.trim())return;
+c.innerHTML=`<div class="u"><i class="av"></i>You <span>· just now</span></div><p></p>`;c.querySelector('p').textContent=ta.value;toast('Comment posted')}}}
+c0=document.createElement('div');
+const sample=rows[13];setTimeout(()=>{const c=document.createElement('div');c.className='cmt';c.innerHTML='<div class="u"><i class="av"></i>reviewer <span>· 2m ago</span></div><p>Nice — does verify() throw on malformed tokens, or should we wrap this in try/catch?</p>';sample.after(c)},900);
+const r=document.getElementById('t'),seg=document.getElementById('seg'),pill=seg.querySelector('.pill'),btn=[...seg.querySelectorAll('button')],pct=document.getElementById('pct');
+function set(v){r.value=v;pct.textContent=Math.round(v)+'%';
+const on=btn.find(x=>+x.dataset.v==v);btn.forEach(x=>x.classList.toggle('on',x==on));
+if(on){pill.style.opacity=1;pill.style.left=on.offsetLeft+'px';pill.style.width=on.offsetWidth+'px'}else pill.style.opacity=.15;
+const del=Math.min(1,(100-v)/50),add=Math.min(1,v/50);
+rows.forEach((d,i)=>{const t=+d.dataset.t;if(!t)return;const k=t<0?del:add;
+d.style.transitionDelay=(i*22)+'ms';d.style.maxHeight=k*22+'px';d.style.opacity=k;d.style.transform=`translateX(${(1-k)*(t<0?-24:24)}px)`;d.style.filter=`blur(${(1-k)*4}px)`;d.mi.style.opacity=.2+.8*k})}
+r.oninput=()=>set(+r.value);btn.forEach(x=>x.onclick=()=>set(+x.dataset.v));
+const replay=()=>{set(0);setTimeout(()=>set(50),900);setTimeout(()=>set(100),1900)};document.getElementById('pl').onclick=replay;
+let tt;function toast(s){const e=document.getElementById('toast');e.textContent=s;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),1600)}
+document.getElementById('cp').onclick=()=>toast('Diff copied to clipboard');
+let ci=-1;const ch=rows.filter(d=>+d.dataset.t);
+addEventListener('keydown',e=>{if(e.key=='ArrowLeft')set(Math.max(0,+r.value-10));if(e.key=='ArrowRight')set(Math.min(100,+r.value+10));if(e.key=='r')replay();
+if(e.key=='j'||e.key=='k'){ci=(ci+(e.key=='j'?1:-1)+ch.length)%ch.length;rows.forEach(x=>x.classList.remove('sel'));ch[ci].classList.add('sel')}});
+requestAnimationFrame(()=>set(50));
+</script></body></html>

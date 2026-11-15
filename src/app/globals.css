@@ -1004,3 +1004,53 @@ code[data-theme*=" "] span,
     @apply origin-left scale-x-100;
   }
 }
+
+/* ---- Theme transition (see lib/theme-transition.ts) ----------------------- */
+/* Only the theme switch gets these; page navigations keep their defaults. */
+html[data-theme-transition]::view-transition-old(root),
+html[data-theme-transition]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Click: the new theme grows from the toggle as a soft-edged circle. */
+html[data-theme-transition="reveal"]::view-transition-new(root) {
+  animation: theme-reveal 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+html[data-theme-transition="reveal"]::view-transition-old(root) {
+  animation: theme-recede 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Keyboard / command palette: a short crossfade. */
+html[data-theme-transition="fade"]::view-transition-old(root) {
+  animation: theme-fade-out 260ms ease both;
+}
+html[data-theme-transition="fade"]::view-transition-new(root) {
+  animation: theme-fade-in 260ms ease both;
+}
+
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0 at var(--theme-x, 50%) var(--theme-y, 0));
+    filter: blur(2px);
+  }
+  to {
+    clip-path: circle(var(--theme-r, 150vmax) at var(--theme-x, 50%) var(--theme-y, 0));
+    filter: blur(0);
+  }
+}
+@keyframes theme-recede {
+  to {
+    opacity: 0.85;
+  }
+}
+@keyframes theme-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes theme-fade-in {
+  from {
+    opacity: 0;
+  }
+}

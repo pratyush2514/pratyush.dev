@@ -48,7 +48,7 @@ const workIcons: Record<WorkflowIcon, React.ReactElement> = {
 
 export function HowIWork() {
   return (
-    <AccordionSection title={siteConfig.workflow.title}>
+    <AccordionSection title={siteConfig.workflow.title} defaultExpanded>
       <div className="px-6 flex flex-col gap-4">
         <ul className="space-y-2.5 text-sm text-muted-foreground">
           {siteConfig.workflow.items.map((item) => (
@@ -69,8 +69,8 @@ export function HowIWork() {
         </ul>
         <div className="flex justify-end pr-4">
           <Signature
-            className="text-foreground/80 max-sm:hidden"
-            viewport={{ amount: 0.1 }}
+            className="h-auto w-32 text-foreground/85 sm:w-40"
+            viewport={{ amount: 0.4 }}
           />
         </div>
       </div>

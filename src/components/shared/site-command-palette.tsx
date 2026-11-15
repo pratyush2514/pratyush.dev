@@ -24,6 +24,7 @@ import { projectsConfig } from "@/config/projects";
 import { siteConfig } from "@/config/site";
 import { playCopySound } from "@/lib/copy-sound";
 import { SITE } from "@/lib/site";
+import { switchThemeWithTransition } from "@/lib/theme-transition";
 import { CalendarDays, FileText, Mail, Palette } from "lucide-react";
 
 /**
@@ -147,19 +148,19 @@ export function SiteCommandPalette({
             id: "theme-light",
             label: "Light",
             icon: <Sun className="size-4" />,
-            onSelect: () => setTheme("light"),
+            onSelect: () => switchThemeWithTransition(() => setTheme("light")),
           },
           {
             id: "theme-dark",
             label: "Dark",
             icon: <Moon className="size-4" />,
-            onSelect: () => setTheme("dark"),
+            onSelect: () => switchThemeWithTransition(() => setTheme("dark")),
           },
           {
             id: "theme-system",
             label: "System",
             icon: <Monitor className="size-4" />,
-            onSelect: () => setTheme("system"),
+            onSelect: () => switchThemeWithTransition(() => setTheme("system")),
           },
         ],
       },

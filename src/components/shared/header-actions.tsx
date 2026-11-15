@@ -11,6 +11,7 @@ import { revealOnMount } from "@/lib/motion";
 import dynamic from "next/dynamic";
 import { siteConfig } from "@/config/site";
 import { trackEvent } from "@/lib/analytics";
+import { originFromEvent, switchThemeWithTransition } from "@/lib/theme-transition";
 import OpenSrc from "@/public/stacks/open-src";
 import { Moon, Search, Sun } from "@/components/shared/site-icons";
 import { useTheme } from "next-themes";
@@ -131,14 +132,14 @@ export function HeaderActions() {
     }
   };
 
-  const toggleTheme = useCallback((method: "button" | "shortcut_key" = "button") => {
+  const toggleTheme = useCallback((method: "button" | "shortcut_key" = "button", origin?: { x: number; y: number }) => {
     playThemeAudio();
     const nextTheme = resolvedTheme === "dark" ? "light" : "dark";
     trackEvent("theme_toggled", {
       theme: nextTheme,
       method,
     });
-    setTheme(nextTheme);
+    switchThemeWithTransition(() => setTheme(nextTheme), origin);
   }, [resolvedTheme, setTheme]);
 
   useEffect(() => {
@@ -208,7 +209,7 @@ export function HeaderActions() {
               type="button"
               aria-label={siteConfig.banner.themeToggleLabel}
               className={`${styles.utility} cursor-pointer`}
-              onClick={() => toggleTheme("button")}
+              onClick={(event) => toggleTheme("button", originFromEvent(event))}
             >
               <span className={styles.utilityFace}>
                 <Sun className="size-[14.4px] rotate-0 scale-100 transition-transform duration-300 dark:-rotate-90 dark:scale-0 motion-reduce:transition-none" />

@@ -253,12 +253,21 @@ export interface ListSectionConfig {
   items: string[];
 }
 
-export type WorkflowIcon = "scope" | "communication" | "handoff";
+export type WorkflowIcon =
+  | "validate"
+  | "map"
+  | "docs"
+  | "harness"
+  | "craft"
+  | "ship";
 
 export interface WorkflowItem {
   label: string;
+  /** Plain-language explanation anyone can follow. */
   description: string;
   icon?: WorkflowIcon;
+  /** What the step produces, shown as small tags for technical readers. */
+  outputs?: string[];
 }
 
 export interface PricingAnchor {
@@ -547,6 +556,8 @@ export interface PortfolioConfig {
   services: ListSectionConfig;
   workflow: {
     title: string;
+    /** One line above the steps that sums up the approach. */
+    intro?: string;
     items: WorkflowItem[];
   };
   contact: ContactConfig;

@@ -1,7 +1,7 @@
 import { footerConfig, siteConfig } from "@/config/site";
 
 export const openGraphConfig = {
-  locationLabel: "Software Engineer · India",
+  locationLabel: "Full-Stack Engineer & Product Designer · India",
   // Resolved light-theme tokens for the image renderer, which has no CSS cascade.
   colors: {
     background: "rgb(255, 255, 255)",

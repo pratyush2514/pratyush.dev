@@ -145,7 +145,11 @@ export function buildLlmsFullTxt(): string {
     "",
     "## How I work",
     "",
-    ...siteConfig.workflow.items.map((item) => `- ${item.label}: ${item.description}`),
+    ...(siteConfig.workflow.intro ? [siteConfig.workflow.intro, ""] : []),
+    ...siteConfig.workflow.items.map(
+      (item, index) =>
+        `${index + 1}. ${item.label}: ${item.description}${item.outputs?.length ? ` (Produces: ${item.outputs.join(", ")}.)` : ""}`,
+    ),
     "",
     "## Projects",
     "",

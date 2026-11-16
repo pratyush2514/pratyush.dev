@@ -7,11 +7,11 @@ const fromVercel = process.env.VERCEL_PROJECT_PRODUCTION_URL
 export const SITE = {
   url: (process.env.NEXT_PUBLIC_SITE_URL ?? fromVercel ?? "http://localhost:3000").replace(/\/$/, ""),
   name: "Pratyush Rastogi",
-  title: "Pratyush Rastogi — Full-Stack Software Engineer",
-  jobTitle: "Full-Stack Software Engineer",
+  title: "Pratyush Rastogi — Full-Stack Engineer & Product Designer",
+  jobTitle: "Full-Stack Engineer & Product Designer",
   // Kept under ~160 characters so search results show it whole.
   description:
-    "Full-stack software engineer in India building web apps with Java, Spring Boot and Next.js, plus tools that keep production safe for teams using AI agents.",
+    "Full-stack engineer and product designer in India. I design and build polished web products, and the guardrails that keep AI from breaking real data.",
   email: "rastogipratyush630@gmail.com",
   github: "https://github.com/pratyush2514",
   linkedin: "https://linkedin.com/in/pratyushrastogi05",

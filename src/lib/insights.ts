@@ -12,6 +12,8 @@ const DAY_MS = 86_400_000;
 
 type Row = unknown[];
 
+let warnedAboutKey = false;
+
 const isCount = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value) && value >= 0;
 
@@ -19,6 +21,19 @@ async function hogql(query: string): Promise<Row[] | null> {
   const key = process.env.POSTHOG_PERSONAL_API_KEY;
   const project = process.env.POSTHOG_PROJECT_ID;
   if (!key || !project || !/^\d+$/.test(project)) return null;
+  // The project key (phc_) can only send events; reading needs a personal
+  // API key (phx_). They are easy to mix up, so say so instead of a bare 403.
+  if (key.startsWith("phc_")) {
+    if (!warnedAboutKey) {
+      warnedAboutKey = true;
+      console.error(
+        "Insights disabled: POSTHOG_PERSONAL_API_KEY is a project key (phc_). " +
+          "Create a personal API key (phx_) with the Query: read scope at " +
+          "PostHog > Settings > Personal API keys.",
+      );
+    }
+    return null;
+  }
 
   const host = (process.env.POSTHOG_API_HOST ?? "https://us.posthog.com").replace(/\/$/, "");
   const response = await fetch(`${host}/api/projects/${project}/query/`, {
@@ -33,7 +48,12 @@ async function hogql(query: string): Promise<Row[] | null> {
     signal: AbortSignal.timeout(8000),
   });
   if (!response.ok) {
-    console.error("Insights request failed:", response.status);
+    // PostHog explains auth and scope errors in `detail`; it never echoes the key.
+    const detail = await response
+      .json()
+      .then((body: { detail?: unknown }) => (typeof body?.detail === "string" ? body.detail : ""))
+      .catch(() => "");
+    console.error("Insights request failed:", response.status, detail);
     return null;
   }
   const payload: unknown = await response.json();

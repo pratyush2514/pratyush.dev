@@ -12,21 +12,21 @@ export const aboutGreetings: AboutGreetings = {
 export const aboutItems: AboutItem[] = [
   {
     id: "build",
-    lead: "I'm Pratyush, a full-stack engineer",
+    lead: "I'm Pratyush, an engineer who designs",
     illustration: "browser",
-    body: "working across Java and Spring Boot back ends, React and Next.js front ends, and the plumbing between them.",
+    body: "I shape how a product looks and feels, then build all of it: the screens in React and Next.js, the server in Java and Spring Boot, and everything that connects them.",
   },
   {
     id: "guardrails",
-    lead: "A lot of what I build sits at the edge of production",
+    lead: "I like building the safety nets",
     illustration: "notebook",
-    body: "Backstop puts a person between an AI agent and a live database, and Portopsy shows you what you are about to stop before you stop it.",
+    body: "Backstop makes an AI agent ask a person before it changes a live database. Portopsy shows you what's running on your machine before you shut it down.",
   },
   {
     id: "ai",
-    lead: "Writing code got cheap, deciding what should ship didn't",
+    lead: "Writing code got cheap. Taste didn't.",
     illustration: "plane",
-    body: "so I treat what AI tools write like a pull request from a fast, confident teammate: read it, test it, and own whatever reaches production.",
+    body: "AI drafts a lot of my code, and I treat it like work from a fast, confident teammate: I read it, test it, polish it, and own whatever reaches people.",
   },
 ];
 
@@ -52,6 +52,9 @@ export const siteConfig: PortfolioConfig = {
       "Pratyush Rastogi",
       "software engineer",
       "full-stack developer",
+      "product designer",
+      "UI/UX designer",
+      "design engineer",
       "portfolio",
       "Next.js",
       "Spring Boot",
@@ -70,7 +73,7 @@ export const siteConfig: PortfolioConfig = {
       url: "/opengraph-image",
       width: 1200,
       height: 630,
-      alt: `${SITE.name} — Software Engineer`,
+      alt: `${SITE.name} — ${SITE.jobTitle}`,
     },
     twitterCreator: SITE.xHandle,
     icon: "/favicon.svg",
@@ -177,31 +180,57 @@ export const siteConfig: PortfolioConfig = {
   },
   workflow: {
     title: "How I work",
+    intro:
+      "AI makes code fast to write. The hard part is knowing what to build and making it feel right, so that's where I spend my time.",
     items: [
       {
-        label: "Read it",
+        label: "Validate the idea",
         description:
-          "AI writes a lot of my first drafts. I read every line of it like a pull request before it goes anywhere.",
-        icon: "scope",
+          "Before any code, I check the problem is real: who has it, how they solve it today, and what would make them switch.",
+        icon: "validate",
+        outputs: ["Problem statement", "Target user", "Success metric"],
       },
       {
-        label: "Test it",
+        label: "Map the flow",
         description:
-          "Behaviour is verified, not assumed. Tools I ship stay read-only until you say otherwise.",
-        icon: "communication",
+          "I sketch every screen a person moves through, then the system behind it, so surprises show up on paper instead of in production.",
+        icon: "map",
+        outputs: ["User flows", "Mind map", "Architecture"],
       },
       {
-        label: "Own it",
+        label: "Write it down",
         description:
-          "Whatever reaches production is mine: deploys, monitoring, and support after launch.",
-        icon: "handoff",
+          "AI drafts the specs and docs from that map. I edit them until they're right, so everyone, human or agent, builds from the same plan.",
+        icon: "docs",
+        outputs: ["Spec", "API contract", "Agent rules"],
+      },
+      {
+        label: "Build the harness",
+        description:
+          "Before features, I set up the safety net: tests, type checks and preview deploys that catch mistakes automatically, whoever made them.",
+        icon: "harness",
+        outputs: ["Tests", "CI checks", "Preview deploys"],
+      },
+      {
+        label: "Build and polish",
+        description:
+          "Then I build, and I sweat the details: spacing, motion, empty states and the slow-connection case. AI writes drafts; I review every line.",
+        icon: "craft",
+        outputs: ["Design system", "Accessibility", "Performance"],
+      },
+      {
+        label: "Ship and own it",
+        description:
+          "Launch is the start. I watch how it's used, fix what breaks, and keep improving it after it's live.",
+        icon: "ship",
+        outputs: ["Monitoring", "Analytics", "Iteration"],
       },
     ],
   },
   contact: {
     title: "Let's talk",
     description:
-      "Hiring, a project, or something you are stuck on. Email is the fastest way to reach me, or grab a 30-minute slot.",
+      "Hiring, have a product idea, or stuck on something? Email is the fastest way to reach me, or book a 30-minute call.",
     pricing: [],
     channels: socialsConfig.filter((item) =>
       ["email", "calendar", "linkedin"].includes(item.id),

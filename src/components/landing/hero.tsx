@@ -5,31 +5,14 @@ import { VerseText } from "@/components/verse-text";
 import { heroConfig } from "@/config/hero";
 import { siteConfig } from "@/config/site";
 import { trackEvent } from "@/lib/analytics";
-import { MOTION_EASE } from "@/lib/motion";
 import { RotatingGlobe } from "./rotating-globe";
-import { motion, type Variants } from "motion/react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useHaptic } from "react-haptic";
 
 // Keep blur on the text itself, so the banner and section shell stay sharp.
-const textVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    filter: "blur(3px)",
-    y: 8,
-  },
-  visible: (delay = 0) => ({
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: {
-      duration: 0.5,
-      ease: MOTION_EASE,
-      delay,
-      opacity: { duration: 0.28, ease: MOTION_EASE, delay },
-    },
-  }),
-};
+// The entrance is CSS (`.enter` in globals.css) so it never waits for hydration.
+const enter = (delay = 0): CSSProperties =>
+  ({ "--enter-delay": `${delay}s`, "--enter-blur": "3px" }) as CSSProperties;
 
 const locationTimeFormatter = new Intl.DateTimeFormat("en-GB", {
   timeZone: siteConfig.personal.location.timeZone,
@@ -101,11 +84,7 @@ export function Hero() {
   }, []);
 
   return (
-    <motion.section
-      className="relative z-20 space-y-4 px-6 pt-4"
-      initial="hidden"
-      animate="visible"
-    >
+    <section className="relative z-20 space-y-4 px-6 pt-4">
       <div className="flex flex-col items-start gap-2">
         <div className="w-full min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-1 max-sm:justify-between">
@@ -121,10 +100,10 @@ export function Hero() {
                 } as CSSProperties
               }
             />
-            <motion.span
+            <span
               data-reveal=""
-              variants={textVariants}
-              className="no-js-visible flex items-center"
+              style={enter()}
+              className="enter flex items-center"
             >
               <span
                 className="inline-block text-xl leading-none"
@@ -155,7 +134,7 @@ export function Hero() {
                   />
                 )}
               </span>
-            </motion.span>
+            </span>
             </div>
             <span className="size-2 rounded-full bg-muted ring-1 ring-inset ring-muted max-sm:hidden">
 
@@ -170,14 +149,13 @@ export function Hero() {
               >
 
                 <RotatingGlobe isHovered={isLocationHovered} />
-                <motion.span
+                <span
                   data-reveal=""
-                  className="no-js-visible inline-block font-sans"
-                  variants={textVariants}
-                  custom={0.26}
+                  className="enter inline-block font-sans"
+                  style={enter(0.26)}
                 >
                   {siteConfig.personal.location.label}
-                </motion.span>
+                </span>
               </TooltipTrigger>
               <TooltipContent>
                 <span className="font-sans text-xs tracking-wider">
@@ -187,11 +165,10 @@ export function Hero() {
             </Tooltip>
           </div>
 
-          <motion.h1
+          <h1
             data-reveal=""
-            className="no-js-visible text-lg sm:text-sm md:text-lg font-semibold leading-[1.05] tracking-tight text-balance"
-            variants={textVariants}
-            custom={0.1}
+            className="enter text-lg sm:text-sm md:text-lg font-semibold leading-[1.05] tracking-tight text-balance"
+            style={enter(0.1)}
           >
             <span className="whitespace-nowrap">
               {heroConfig.headlineBefore} {heroConfig.highlightedPhrases[0]}
@@ -200,13 +177,12 @@ export function Hero() {
               {heroConfig.headlineConnector ?? "in"} {heroConfig.highlightedPhrases[1]}
             </span>
             {headlineAfter}
-          </motion.h1>
+          </h1>
 
-          <motion.p
+          <p
             data-reveal=""
-            className="no-js-visible mt-2 text-sm leading-relaxed text-muted-foreground text-pretty sm:leading-normal"
-            variants={textVariants}
-            custom={0.18}
+            className="enter mt-2 text-sm leading-relaxed text-muted-foreground text-pretty sm:leading-normal"
+            style={enter(0.18)}
           >
             {afterHighlight === undefined ? (
               heroConfig.description
@@ -219,12 +195,12 @@ export function Hero() {
                 {afterHighlight}
               </>
             )}
-          </motion.p>
+          </p>
 
         </div>
       </div>
 
       <audio src="/vibration.mp3" ref={vibrateAudio} loop preload="none" />
-    </motion.section>
+    </section>
   );
 }

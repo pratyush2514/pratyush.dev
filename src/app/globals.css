@@ -911,6 +911,26 @@ code[data-theme*=" "] span,
   100% { transform: rotate(0deg); }
 }
 
+/* Entrance for content above the fold. Pure CSS, so it plays as soon as the
+   HTML paints instead of waiting for JavaScript to load and hydrate (which is
+   what made the hero text the slowest thing on the page). Tune per element
+   with --enter-delay, --enter-y, --enter-scale, --enter-rotate, --enter-blur.
+   Reduced motion needs nothing here: the media query below shrinks every
+   animation to 0.01ms, which lands on the resolved state. */
+@keyframes enter-rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--enter-y, 8px)) scale(var(--enter-scale, 1))
+      rotate(var(--enter-rotate, 0deg));
+    filter: blur(var(--enter-blur, 0px));
+  }
+}
+
+.enter {
+  animation: enter-rise var(--enter-duration, 0.5s)
+    var(--enter-ease, cubic-bezier(0.22, 1, 0.36, 1)) var(--enter-delay, 0s) both;
+}
+
 @utility no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;

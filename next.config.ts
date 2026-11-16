@@ -76,19 +76,42 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
+    // Resized copies stay cached for 31 days instead of the 4-hour default,
+    // so repeat visits and new visitors hit the cache, not the optimizer.
+    minimumCacheTTL: 60 * 60 * 24 * 31,
     remotePatterns: [
       { protocol: "https", hostname: new URL(supabase).hostname },
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
     ],
   },
   experimental: {
-    optimizePackageImports: ["lucide-react", "react-icons", "date-fns"],
+    optimizePackageImports: [
+      "lucide-react",
+      "react-icons",
+      "date-fns",
+      "motion",
+      "radix-ui",
+      "@hugeicons/react",
+      "@hugeicons/core-free-icons",
+    ],
   },
   async headers() {
     return [
       {
         source: "/:path*",
         headers: securityHeaders,
+      },
+      {
+        // Vercel serves files from /public with `max-age=0, must-revalidate`,
+        // so every visit re-checks every image and sound. These rarely change:
+        // cache them for 30 days and refresh in the background for a day after.
+        source: "/:all*(svg|png|jpg|jpeg|webp|avif|gif|ico|mp3|woff2)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=2592000, stale-while-revalidate=86400",
+          },
+        ],
       },
     ];
   },

@@ -38,6 +38,15 @@ export function InteractiveSticker({
     bounds.current = null;
   };
 
+  // The clip is only fetched once someone shows intent (hover, focus or touch),
+  // so the five sticker sounds cost nothing on a visit that never touches them.
+  const warmSound = () => {
+    const audio = audioRef.current;
+    if (!audio || audio.preload === "auto") return;
+    audio.preload = "auto";
+    audio.load();
+  };
+
   const playSound = () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -80,7 +89,10 @@ export function InteractiveSticker({
         onPointerEnter={(event) => {
           bounds.current =
             event.currentTarget.parentElement?.getBoundingClientRect() ?? null;
+          warmSound();
         }}
+        onPointerDown={warmSound}
+        onFocus={warmSound}
         onPointerMove={followPointer}
         onPointerLeave={resetPointer}
         onPointerCancel={resetPointer}
@@ -98,7 +110,7 @@ export function InteractiveSticker({
         />
       </motion.button>
       {soundSrc ? (
-        <audio ref={audioRef} src={soundSrc} preload="auto" />
+        <audio ref={audioRef} src={soundSrc} preload="none" />
       ) : null}
     </>
   );

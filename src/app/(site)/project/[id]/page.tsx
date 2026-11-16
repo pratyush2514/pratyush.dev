@@ -1,8 +1,11 @@
 import { JsonLd } from "@/components/shared/json-ld";
 import { projectsConfig, projectsSectionConfig } from "@/config/projects";
+import { markdownComponents } from "@/lib/markdown/markdown-components";
 import { breadcrumbSchema, pageMetadata, projectSchema } from "@/lib/seo";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { ProjectContent } from "./project-content";
 
 const enabledProjects = () =>
@@ -58,6 +61,13 @@ export default async function ProjectPage({
   const prev = index > 0 ? enabled[index - 1] : undefined;
   const next = index < enabled.length - 1 ? enabled[index + 1] : undefined;
 
+  // Rendered here, on the server, so react-markdown never reaches the browser.
+  const caseStudy = project.content ? (
+    <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+      {project.content}
+    </ReactMarkdown>
+  ) : undefined;
+
   return (
     <>
       <JsonLd
@@ -71,7 +81,7 @@ export default async function ProjectPage({
           ]),
         ]}
       />
-      <ProjectContent project={project} prev={prev} next={next} />
+      <ProjectContent project={project} caseStudy={caseStudy} prev={prev} next={next} />
     </>
   );
 }

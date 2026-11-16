@@ -1,17 +1,25 @@
-"use client";
-
 import {
   profileBannerConfig,
   profileBannerStickers,
 } from "@/config/profile-banner";
 import { siteConfig } from "@/config/site";
-import { motion, useReducedMotion } from "motion/react";
+import type { CSSProperties } from "react";
 import { InteractiveSticker } from "./interactive-sticker";
 import styles from "./profile-banner.module.css";
 
-export function ProfileBanner() {
-  const reduceMotion = useReducedMotion();
+/** Each sticker settles in with a small spring-like overshoot. Plain CSS
+ *  (`.enter` in globals.css), so the banner shows with the first paint. */
+const stickerEntrance = (order: number, tilt: number): CSSProperties =>
+  ({
+    "--enter-y": "24px",
+    "--enter-scale": 0.9,
+    "--enter-rotate": `${-tilt}deg`,
+    "--enter-duration": "0.6s",
+    "--enter-ease": "cubic-bezier(0.34, 1.45, 0.64, 1)",
+    "--enter-delay": `${(order - 1) * 0.1}s`,
+  }) as CSSProperties;
 
+export function ProfileBanner() {
   return (
     <div className="relative px-6 pt-8 sm:pt-10">
       <div
@@ -20,21 +28,11 @@ export function ProfileBanner() {
         aria-label={profileBannerConfig.label}
       >
         {profileBannerStickers.map((sticker) => (
-          <motion.div
+          <div
             key={sticker.id}
-            className={`no-js-visible ${styles.sticker} ${styles[sticker.id]}`}
-            initial={
-              reduceMotion
-                ? false
-                : { opacity: 0, y: 24, scale: 0.9, rotate: -sticker.tilt }
-            }
-            animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
-            transition={{
-              type: "spring",
-              duration: 0.6,
-              bounce: 0.38,
-              delay: reduceMotion ? 0 : (sticker.order - 1) * 0.1,
-            }}
+            data-reveal=""
+            className={`enter ${styles.sticker} ${styles[sticker.id]}`}
+            style={stickerEntrance(sticker.order, sticker.tilt)}
           >
             <InteractiveSticker
               {...sticker}
@@ -45,7 +43,7 @@ export function ProfileBanner() {
               }
               preload={sticker.id === "keyboard"}
             />
-          </motion.div>
+          </div>
         ))}
       </div>
       <div className={styles.profile}>

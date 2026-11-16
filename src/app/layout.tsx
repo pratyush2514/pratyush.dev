@@ -11,6 +11,8 @@ import type { Metadata, Viewport } from "next";
 import { DM_Sans, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 
+const ICON_VERSION = "2";
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -39,6 +41,9 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
+  // Small labels and code only. Not preloaded, so it stops competing with the
+  // hero fonts for bandwidth; it still loads as soon as the CSS needs it.
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -71,10 +76,15 @@ export const metadata: Metadata = {
     title: siteConfig.meta.title,
     description: siteConfig.meta.description,
   },
+  // Chrome and Firefox take the SVG; Safari and older browsers fall back to the
+  // .ico. Bump ICON_VERSION after regenerating icons: browsers cache them hard.
   icons: {
-    icon: siteConfig.meta.icon,
-    shortcut: siteConfig.meta.icon,
-    apple: siteConfig.meta.appleIcon,
+    icon: [
+      { url: `${siteConfig.meta.icon}?v=${ICON_VERSION}`, type: "image/svg+xml" },
+      { url: `/favicon.ico?v=${ICON_VERSION}`, sizes: "48x48" },
+    ],
+    shortcut: `/favicon.ico?v=${ICON_VERSION}`,
+    apple: { url: `${siteConfig.meta.appleIcon}?v=${ICON_VERSION}`, sizes: "180x180" },
   },
   robots: {
     index: true,

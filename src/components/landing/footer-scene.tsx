@@ -2,10 +2,18 @@
 
 import { Fragment, type ReactNode } from "react";
 import { motion, useReducedMotion, useSpring, type Variants } from "motion/react";
-import { FooterEarth } from "@/components/landing/footer-earth";
+import { LazyMount } from "@/components/shared/lazy-mount";
 import { footerConfig } from "@/config/site";
 import { MOTION_EASE } from "@/lib/motion";
+import dynamic from "next/dynamic";
 import { CoffeeSticker } from "stick-it-up";
+
+// The Earth is a pixel-by-pixel canvas render plus a 76 kB map, and it sits at
+// the very bottom of the page, so it loads only when the footer is near.
+const FooterEarth = dynamic(
+  () => import("@/components/landing/footer-earth").then((mod) => mod.FooterEarth),
+  { ssr: false },
+);
 
 const itemVariants: Variants = {
   hidden: { opacity: 0, y: 12 },
@@ -171,7 +179,9 @@ export function FooterScene({ children }: { children?: ReactNode }) {
               rotate: reducedMotion ? 0 : rotate,
             }}
           >
-            <FooterEarth />
+            <LazyMount>
+              <FooterEarth />
+            </LazyMount>
           </motion.div>
         </div>
 

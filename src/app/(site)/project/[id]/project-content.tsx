@@ -1,6 +1,5 @@
 "use client";
 
-import { markdownComponents } from "@/lib/markdown/markdown-components";
 import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
@@ -24,8 +23,7 @@ import { motion, useReducedMotion, type Variants } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaGithub } from "react-icons/fa";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import type { ReactNode } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -72,10 +70,14 @@ type ProjectNav = Pick<Project, "id" | "title">;
 
 export function ProjectContent({
   project,
+  caseStudy,
   prev,
   next,
 }: {
   project: Project;
+  /** The case study, already rendered on the server. Keeping the markdown
+   *  parser out of this client component saves ~160 kB of JavaScript. */
+  caseStudy?: ReactNode;
   prev?: ProjectNav;
   next?: ProjectNav;
 }) {
@@ -219,23 +221,14 @@ export function ProjectContent({
         </div>
       </motion.div>
 
-      {project.content && (
+      {caseStudy && (
         <motion.section
           variants={itemVariants}
           aria-label="Case study"
           className="border-t border-dashed px-6 py-6"
         >
           <div className="prose prose-neutral dark:prose-invert max-w-none">
-            {typeof project.content === "string" ? (
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={markdownComponents}
-              >
-                {project.content}
-              </ReactMarkdown>
-            ) : (
-              project.content
-            )}
+            {caseStudy}
           </div>
         </motion.section>
       )}

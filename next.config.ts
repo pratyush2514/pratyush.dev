@@ -1,4 +1,9 @@
 import type { NextConfig } from "next";
+import {
+  POSTHOG_ASSETS_HOST,
+  POSTHOG_INGEST_HOST,
+  POSTHOG_RELAY_PATH,
+} from "./src/config/analytics";
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -43,6 +48,28 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // PostHog endpoints end in a slash (/e/, /flags/). Without this, Next.js
+  // answers every event batch with a 308 first. Pages set canonical URLs, so
+  // a trailing-slash variant of a page never competes in search.
+  skipTrailingSlashRedirect: true,
+  async rewrites() {
+    // Reverse proxy for PostHog. The specific asset rules must come before the
+    // catch-all, which would otherwise match them first.
+    return [
+      {
+        source: `${POSTHOG_RELAY_PATH}/static/:path*`,
+        destination: `${POSTHOG_ASSETS_HOST}/static/:path*`,
+      },
+      {
+        source: `${POSTHOG_RELAY_PATH}/array/:path*`,
+        destination: `${POSTHOG_ASSETS_HOST}/array/:path*`,
+      },
+      {
+        source: `${POSTHOG_RELAY_PATH}/:path*`,
+        destination: `${POSTHOG_INGEST_HOST}/:path*`,
+      },
+    ];
+  },
   outputFileTracingIncludes: {
     "/**": ["./src/lib/fonts/**/*"],
     "/opengraph-image": ["./public/images/og/garden.png"],

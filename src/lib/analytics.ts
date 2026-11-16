@@ -1,5 +1,6 @@
 import { track } from "@vercel/analytics";
 import type posthog from "posthog-js";
+import { POSTHOG_RELAY_PATH, POSTHOG_UI_HOST } from "@/config/analytics";
 
 type PostHog = typeof posthog;
 type EventValue = string | number | boolean | null | undefined;
@@ -20,7 +21,9 @@ export function getPostHog(): Promise<PostHog | null> {
     posthogClient = import("posthog-js")
       .then((mod) => {
         mod.default.init(key, {
-          api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
+          api_host: POSTHOG_RELAY_PATH,
+          ui_host: POSTHOG_UI_HOST,
+          defaults: "2026-05-30",
           person_profiles: "identified_only",
           capture_pageview: false, // PostHogPageView captures App Router navigations
           capture_pageleave: true,

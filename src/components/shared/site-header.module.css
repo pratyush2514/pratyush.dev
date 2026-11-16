@@ -1,3 +1,79 @@
+/* --- Scroll states ----------------------------------------------------------
+   At the top the bar is bare pills over the banner. Once the page scrolls it
+   sits on a frosted surface so content passing underneath stays legible.
+   Scrolling down hides it; any upward scroll brings it back. */
+
+.header {
+  transition: transform 320ms var(--motion-ease-standard);
+  will-change: transform;
+}
+
+.header[data-hidden="true"] {
+  /* Bar height plus its sticky offset, so it clears the viewport fully. */
+  transform: translateY(calc(-100% - 1.5rem - env(safe-area-inset-top)));
+}
+
+.bar {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-inline: 0.75rem;
+}
+
+.surface {
+  position: absolute;
+  z-index: -1;
+  inset: -4px 0;
+  overflow: hidden;
+  border-radius: 18px;
+  background: color-mix(in oklch, var(--background) 72%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklch, var(--border) 80%, transparent),
+    0 10px 30px -14px rgb(0 0 0 / 0.28);
+  opacity: 0;
+  transform: scale(0.97);
+  transition:
+    opacity 220ms var(--motion-ease-standard),
+    transform 220ms var(--motion-ease-standard);
+}
+
+/* Without backdrop-filter, a translucent bar reads as a smudge: go opaque. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .surface {
+    background: var(--background);
+  }
+}
+
+.header[data-scrolled="true"] .surface {
+  opacity: 1;
+  transform: none;
+  /* Taps on the gaps between buttons land on the bar, not the content under it. */
+  pointer-events: auto;
+}
+
+.progress {
+  position: absolute;
+  inset-inline: 14px;
+  bottom: 0;
+  height: 1.5px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--primary) 70%, transparent);
+  transform-origin: left center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .surface {
+    transition: none;
+  }
+}
+
 .homeLink {
   -webkit-tap-highlight-color: transparent;
 }

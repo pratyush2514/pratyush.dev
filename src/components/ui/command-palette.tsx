@@ -502,7 +502,7 @@ export function CommandPalette({
                       }
                     }}
                     placeholder={currentPage?.placeholder ?? placeholder}
-                    className="h-12 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
+                    className="h-12 w-full bg-transparent text-base outline-none placeholder:text-muted-foreground/60 sm:text-sm"
                   />
                   {query ? (
                     <button

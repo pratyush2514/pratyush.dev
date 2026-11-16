@@ -1,11 +1,17 @@
-import { projectsConfig } from "@/config/projects";
-import { siteConfig } from "@/config/site";
+import { JsonLd } from "@/components/shared/json-ld";
+import { projectsConfig, projectsSectionConfig } from "@/config/projects";
+import { breadcrumbSchema, pageMetadata, projectSchema } from "@/lib/seo";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProjectContent } from "./project-content";
 
+const enabledProjects = () =>
+  projectsConfig
+    .filter((p) => p.enabled !== false)
+    .sort((a, b) => a.order - b.order);
+
 export async function generateStaticParams() {
-  return projectsConfig.map((project) => ({
+  return enabledProjects().map((project) => ({
     id: project.id,
   }));
 }
@@ -15,43 +21,24 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const resolvedParams = await params;
-  const project = projectsConfig.find((p) => p.id === resolvedParams.id);
+  const { id } = await params;
+  const project = enabledProjects().find((p) => p.id === id);
 
   if (!project) {
     return {
-      title: "Project Not Found",
+      title: "Project not found",
+      robots: { index: false, follow: false },
     };
   }
 
-  const url = `${siteConfig.meta.url}/project/${project.id}`;
-
-  return {
+  return pageMetadata({
     title: project.title,
     description: project.description,
-    keywords: [
-      ...siteConfig.meta.keywords,
-      ...project.tags,
-      "portfolio project",
-      "developer project",
-    ],
-    alternates: {
-      canonical: url,
-    },
-    openGraph: {
-      type: "article",
-      url,
-      title: project.title,
-      description: project.description,
-      siteName: siteConfig.meta.shortTitle,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: project.title,
-      description: project.description,
-      creator: siteConfig.meta.twitterCreator,
-    },
-  };
+    path: `/project/${project.id}`,
+    type: "article",
+    keywords: [...project.tags, project.category, "case study", "Pratyush Rastogi"],
+    publishedTime: `${project.year}-01-01T00:00:00Z`,
+  });
 }
 
 export default async function ProjectPage({
@@ -59,11 +46,9 @@ export default async function ProjectPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const resolvedParams = await params;
-  const enabled = [...projectsConfig]
-    .filter((p) => p.enabled !== false)
-    .sort((a, b) => a.order - b.order);
-  const index = enabled.findIndex((p) => p.id === resolvedParams.id);
+  const { id } = await params;
+  const enabled = enabledProjects();
+  const index = enabled.findIndex((p) => p.id === id);
   const project = enabled[index];
 
   if (!project) {
@@ -73,5 +58,20 @@ export default async function ProjectPage({
   const prev = index > 0 ? enabled[index - 1] : undefined;
   const next = index < enabled.length - 1 ? enabled[index + 1] : undefined;
 
-  return <ProjectContent project={project} prev={prev} next={next} />;
+  return (
+    <>
+      <JsonLd
+        data={[
+          projectSchema(project),
+          breadcrumbSchema([
+            // Search engines drop URL fragments, so "/#projects" would just
+            // repeat the home page; the trail goes straight to the project.
+            { name: projectsSectionConfig.title, path: "/" },
+            { name: project.title, path: `/project/${project.id}` },
+          ]),
+        ]}
+      />
+      <ProjectContent project={project} prev={prev} next={next} />
+    </>
+  );
 }

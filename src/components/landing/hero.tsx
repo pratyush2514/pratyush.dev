@@ -162,7 +162,7 @@ export function Hero() {
             </span>
             <Tooltip onOpenChange={setIsLocationTooltipOpen}>
               <TooltipTrigger
-                className="micro-transition flex min-h-4 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm text-xs text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/20 hover:text-foreground sm:text-sm"
+                className="micro-transition relative flex min-h-4 shrink-0 items-center after:absolute after:-inset-x-2 after:-inset-y-3.5 after:content-[''] gap-1.5 whitespace-nowrap rounded-sm text-xs text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/20 hover:text-foreground sm:text-sm"
                 onMouseEnter={() => setIsLocationHovered(true)}
                 onMouseLeave={() => setIsLocationHovered(false)}
                 onFocus={() => setIsLocationHovered(true)}
@@ -204,7 +204,7 @@ export function Hero() {
 
           <motion.p
             data-reveal=""
-            className="no-js-visible mt-2 text-sm text-muted-foreground max-sm:text-xs"
+            className="no-js-visible mt-2 text-sm leading-relaxed text-muted-foreground text-pretty sm:leading-normal"
             variants={textVariants}
             custom={0.18}
           >

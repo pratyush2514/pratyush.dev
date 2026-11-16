@@ -6,7 +6,7 @@ import { ImageResponse } from "next/og";
 import { notFound } from "next/navigation";
 
 export const runtime = "nodejs";
-export const alt = "A project case study by Aditya Ojha";
+export const alt = `A project case study by ${siteConfig.personal.fullName}`;
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 

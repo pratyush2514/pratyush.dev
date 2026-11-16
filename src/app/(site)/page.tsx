@@ -23,6 +23,10 @@ import { siteConfig } from "@/config/site";
 import type { SectionId } from "@/config/types";
 import { getDesigns } from "@/lib/designs/storage";
 import { orderForShowcase } from "@/lib/designs/types";
+import { JsonLd } from "@/components/shared/json-ld";
+import { pageMetadata, profilePageSchema } from "@/lib/seo";
+import { SITE } from "@/lib/site";
+import type { Metadata } from "next";
 import type { ReactElement } from "react";
 import { Suspense } from "react";
 import type { ProjectExplorerItem } from "@/components/project-explorer";
@@ -30,6 +34,13 @@ import type { ProjectExplorerItem } from "@/components/project-explorer";
 // Static, rebuilt in the background at most hourly, and immediately after a
 // change in the admin panel.
 export const revalidate = 3600;
+
+export const metadata: Metadata = pageMetadata({
+  absoluteTitle: SITE.title,
+  description: SITE.description,
+  path: "/",
+  type: "profile",
+});
 
 /* The explorer never reads case-study content, tags, or metrics, so those
    fields stay on the server instead of crossing the client boundary. */
@@ -89,6 +100,7 @@ export default async function Home() {
 
   return (
     <>
+      <JsonLd data={profilePageSchema()} />
       <main
         id="main-content"
         className="relative flex min-h-dvh flex-col gap-y-4 overflow-x-clip border-x bg-background pt-8 xl:overflow-x-visible"

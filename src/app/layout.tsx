@@ -1,7 +1,9 @@
 import { PostHogProvider } from "@/components/shared/posthog-provider";
 import { ThemeProvider } from "@/components/shared/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { JsonLd } from "@/components/shared/json-ld";
 import { siteConfig } from "@/config/site";
+import { LLMS_ALTERNATE, personSchema, websiteSchema } from "@/lib/seo";
 import { SITE } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/next";
@@ -53,18 +55,14 @@ export const metadata: Metadata = {
   publisher: siteConfig.meta.publisher,
   classification: siteConfig.meta.classification,
   category: siteConfig.meta.category,
-  alternates: {
-    canonical: "/",
-  },
+  // No canonical or og:url here: they would be inherited by every route that
+  // forgets to set its own (404s included). Pages set them via pageMetadata.
   openGraph: {
-    type: "profile",
+    type: "website",
     locale: siteConfig.meta.locale,
-    url: "/",
     title: siteConfig.meta.title,
     description: siteConfig.meta.description,
     siteName: siteConfig.meta.shortTitle,
-    firstName: "Pratyush",
-    lastName: "Rastogi",
   },
   twitter: {
     card: "summary_large_image",
@@ -91,44 +89,22 @@ export const metadata: Metadata = {
   },
   verification: {
     google: siteConfig.meta.googleVerification || undefined,
+    other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+      ? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
+      : undefined,
   },
-};
-
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebSite",
-      "@id": `${SITE.url}/#website`,
-      url: SITE.url,
-      name: SITE.title,
-      description: SITE.description,
-      publisher: { "@id": `${SITE.url}/#person` },
-    },
-    {
-      "@type": "Person",
-      "@id": `${SITE.url}/#person`,
-      name: SITE.name,
-      url: SITE.url,
-      email: `mailto:${SITE.email}`,
-      jobTitle: "Software Engineer",
-      description: SITE.description,
-      alumniOf: { "@type": "CollegeOrUniversity", name: "Graphic Era University" },
-      knowsAbout: [
-        "Full-stack development",
-        "Java",
-        "Spring Boot",
-        "TypeScript",
-        "Next.js",
-        "Go",
-        "Rust",
-        "PostgreSQL",
-        "AI tooling",
-      ],
-      sameAs: [SITE.github, SITE.linkedin, SITE.x],
-      image: `${SITE.url}${siteConfig.personal.avatar.src}`,
-    },
-  ],
+  // iOS Safari otherwise turns digit runs (years, stats) into phone links.
+  formatDetection: {
+    telephone: false,
+    address: false,
+    email: false,
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Pratyush",
+    statusBarStyle: "default",
+  },
+  alternates: { types: LLMS_ALTERNATE },
 };
 
 export default function RootLayout({
@@ -147,10 +123,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        <JsonLd data={[websiteSchema(), personSchema()]} />
       </head>
       <body className={`${geistMono.variable} antialiased`}>
         <noscript>

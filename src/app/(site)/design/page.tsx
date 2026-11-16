@@ -7,24 +7,66 @@ import { ArrowRightIcon } from "@/components/shared/site-icons";
 import { Button } from "@/components/ui/button";
 import { getDesigns } from "@/lib/designs/storage";
 import { orderForShowcase } from "@/lib/designs/types";
+import { JsonLd } from "@/components/shared/json-ld";
+import { absoluteUrl, breadcrumbSchema, pageMetadata, PERSON_ID, WEBSITE_ID } from "@/lib/seo";
 import { SITE } from "@/lib/site";
 
 // Static, rebuilt in the background at most hourly, and immediately after a
 // change in the admin panel.
 export const revalidate = 3600;
 
-export const metadata: Metadata = {
-  title: "UI / UX design",
-  description: `Interfaces, flows and motion designed by ${SITE.name}: screen recordings, prototypes and shots.`,
-  alternates: { canonical: "/design" },
-  openGraph: { url: "/design", title: `UI / UX design — ${SITE.name}` },
-};
+const description = `Interfaces, flows and motion designed by ${SITE.name}: product screens, prototypes and interaction details from a full-stack engineer who also designs.`;
+
+export const metadata: Metadata = pageMetadata({
+  title: "UI / UX Design Portfolio",
+  description,
+  path: "/design",
+  keywords: ["UI design", "UX design", "product design", "interaction design", "motion design", SITE.name],
+});
 
 export default async function DesignPage() {
   const designs = orderForShowcase(await getDesigns());
 
   return (
     <>
+      <JsonLd
+        data={[
+          {
+            "@type": "CollectionPage",
+            "@id": absoluteUrl("/design#page"),
+            url: absoluteUrl("/design"),
+            name: `UI / UX Design Portfolio — ${SITE.name}`,
+            description,
+            inLanguage: "en",
+            isPartOf: { "@id": WEBSITE_ID },
+            author: { "@id": PERSON_ID },
+            ...(designs.length > 0 && {
+              mainEntity: {
+                "@type": "ItemList",
+                numberOfItems: designs.length,
+                itemListElement: designs.map((design, index) => ({
+                  "@type": "ListItem",
+                  position: index + 1,
+                  item: {
+                    "@type": design.media.kind === "video" ? "VideoObject" : "ImageObject",
+                    name: design.title,
+                    description: design.summary,
+                    contentUrl: design.src,
+                    ...(design.media.kind === "video"
+                      ? { thumbnailUrl: design.poster, uploadDate: design.createdAt }
+                      : {}),
+                    creator: { "@id": PERSON_ID },
+                  },
+                })),
+              },
+            }),
+          },
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Design", path: "/design" },
+          ]),
+        ]}
+      />
       <main
         id="main-content"
         className="relative flex min-h-dvh flex-col gap-y-4 overflow-x-clip border-x bg-background pt-8"

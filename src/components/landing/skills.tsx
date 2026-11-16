@@ -1,7 +1,10 @@
 import { skillsConfig, skillsSectionConfig } from "@/config/skills";
 import type { SkillIcon, SkillItem } from "@/config/types";
 import { cn } from "@/lib/utils";
+import ClaudeCodeIcon from "@/public/stacks/claude-code";
+import GrokIcon from "@/public/stacks/grok";
 import NextjsIcon from "@/public/stacks/nextjs";
+import OpenCodeIcon from "@/public/stacks/opencode";
 import ReactIcon from "@/public/stacks/react";
 import TSIcon from "@/public/stacks/ts";
 import type { ComponentType } from "react";
@@ -19,6 +22,7 @@ import {
   SiN8N,
   SiNodedotjs,
   SiPostgresql,
+  SiProducthunt,
   SiPython,
   SiRust,
   SiSpringboot,
@@ -58,6 +62,10 @@ const skillIconMap: Record<SkillIcon, ComponentType<IconProps>> = {
   linux: tinted(SiLinux),
   n8n: tinted(SiN8N, "#EA4B71"),
   cicd: tinted(SiGithubactions, "#2088FF"),
+  "claude-code": ClaudeCodeIcon,
+  opencode: OpenCodeIcon,
+  grok: GrokIcon,
+  producthunt: tinted(SiProducthunt, "#DA552F"),
 };
 
 const enabledSkills = skillsConfig
@@ -86,7 +94,11 @@ function SkillChip({ skill }: { skill: SkillItem }) {
 
 export function Skills() {
   const skills = enabledSkills;
-  const categories = skillsSectionConfig.categories;
+  // Only groups with at least one skill render, so numbering and the
+  // last-row border follow what's actually on screen.
+  const categories = skillsSectionConfig.categories.filter((category) =>
+    skills.some((skill) => skill.category === category.id),
+  );
 
   return (
     <section className="border-t border-dashed pt-6">
@@ -98,14 +110,12 @@ export function Skills() {
           (skill) => skill.category === category.id,
         );
 
-        if (categorySkills.length === 0) return null;
-
         return (
           <div
             key={category.id}
             className={cn(
               "flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-6 px-6 py-3.5 border-b",
-              groupIndex === 3 ? "border-none" : "",
+              groupIndex === categories.length - 1 ? "border-none" : "",
             )}
           >
             <span className="shrink-0 w-36 font-mono text-xs tracking-wider text-muted-foreground">

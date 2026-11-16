@@ -154,6 +154,7 @@ export type SkillCategory =
   | "language"
   | "frameworks"
   | "data"
+  | "ai"
   | "tools";
 
 export interface SkillCategoryConfig {

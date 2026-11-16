@@ -6,6 +6,7 @@ export const skillsSectionConfig = {
     { id: "language", label: "Languages" },
     { id: "frameworks", label: "Frameworks" },
     { id: "data", label: "Data" },
+    { id: "ai", label: "AI" },
     { id: "tools", label: "Tools" },
   ] as SkillCategoryConfig[],
 };
@@ -33,6 +34,11 @@ const groups: Record<SkillItem["category"], Array<[id: string, name: string]>> =
     ["mysql", "MySQL"],
     ["mongodb", "MongoDB"],
   ],
+  ai: [
+    ["claude-code", "Claude Code"],
+    ["opencode", "OpenCode"],
+    ["grok", "Grok"],
+  ],
   tools: [
     ["git", "Git"],
     ["docker", "Docker"],
@@ -40,6 +46,7 @@ const groups: Record<SkillItem["category"], Array<[id: string, name: string]>> =
     ["linux", "Linux"],
     ["n8n", "n8n"],
     ["cicd", "CI/CD"],
+    ["producthunt", "Product Hunt"],
   ],
 };
 

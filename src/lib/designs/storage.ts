@@ -101,6 +101,22 @@ export async function signUpload(path: string): Promise<string> {
   return `${BASE}/storage/v1${url}`;
 }
 
+/** Server-side upload, for media the server fetched itself (X imports). */
+export async function uploadObject(path: string, body: Uint8Array, contentType: string): Promise<void> {
+  const res = await fetch(`${BASE}/storage/v1/object/${BUCKET}/${path}`, {
+    method: "POST",
+    headers: {
+      ...authHeaders(),
+      "content-type": contentType,
+      "cache-control": "max-age=31536000", // names are unique
+      "x-upsert": "false",
+    },
+    body: body as unknown as BodyInit,
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`Uploading ${path} failed: ${res.status} ${await res.text()}`);
+}
+
 export async function objectExists(path: string): Promise<boolean> {
   const res = await fetch(`${BASE}/storage/v1/object/${BUCKET}/${path}`, {
     method: "HEAD",

@@ -151,6 +151,12 @@ async function uploadFile(file: Blob, onProgress?: (p: number) => void): Promise
 
 // ---------- small pieces ----------
 
+const XLogo = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
+    <path d="M18.9 2H22l-6.8 7.8L23 22h-6.2l-4.9-6.4L6.3 22H3.2l7.3-8.3L1 2h6.3l4.4 5.9L18.9 2Zm-1.1 18.1h1.7L6.3 3.8H4.5l13.3 16.3Z" />
+  </svg>
+);
+
 const Label = ({ children }: { children: React.ReactNode }) => (
   <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-tertiary">{children}</span>
 );
@@ -274,6 +280,9 @@ export function AdminDashboard({ initial, setupError }: { initial: PublicDesign[
   const [editing, setEditing] = useState<{ id: string; meta: Meta } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [xUrl, setXUrl] = useState("");
+  const [xFeatured, setXFeatured] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   const categories = useMemo(
     () => Array.from(new Set(items.map((d) => d.category).filter(Boolean))),
@@ -359,6 +368,31 @@ export function AdminDashboard({ initial, setupError }: { initial: PublicDesign[
     } catch (error) {
       patchDraft(draft.key, { status: "error", error: error instanceof Error ? error.message : "Something went wrong." });
     }
+  }
+
+  async function runImport(url: string) {
+    if (importing) return;
+    setImporting(true);
+    const pending = toast.loading("Downloading from X…");
+    try {
+      const { items: added } = await api<{ items: PublicDesign[] }>("/api/admin/designs/import-x", {
+        method: "POST",
+        body: JSON.stringify({ url, featured: xFeatured }),
+      });
+      await reload();
+      setXUrl("");
+      const what = added.length === 1 ? (added[0].media.kind === "video" ? "video" : "image") : `${added.length} files`;
+      toast.success(`Imported ${what} from X. It's live.`, { id: pending });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Import failed.", { id: pending });
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  function importFromX(event: React.FormEvent) {
+    event.preventDefault();
+    void runImport(xUrl.trim());
   }
 
   async function saveEdit() {
@@ -486,6 +520,63 @@ export function AdminDashboard({ initial, setupError }: { initial: PublicDesign[
             Tip: MP4 (H.264) recordings play everywhere and are much smaller than GIFs.
           </p>
         </div>
+
+        {/* Import from X */}
+        <form
+          onSubmit={importFromX}
+          className={cn(
+            "mt-4 flex flex-col gap-3 rounded-3xl border border-border px-5 py-5 sm:flex-row sm:items-center",
+            setupError && "pointer-events-none opacity-50"
+          )}
+        >
+          <label htmlFor="x-url" className="flex shrink-0 items-center gap-2 text-sm font-medium">
+            <span className="flex size-8 items-center justify-center rounded-full border border-border bg-bg">
+              <XLogo className="size-3.5" />
+            </span>
+            Import from X
+          </label>
+          <input
+            id="x-url"
+            type="url"
+            inputMode="url"
+            required
+            value={xUrl}
+            onChange={(e) => setXUrl(e.target.value)}
+            onPaste={(e) => {
+              // Pasting a link is the whole interaction: import right away.
+              const pasted = e.clipboardData.getData("text").trim();
+              if (/^https:\/\/(www\.|mobile\.)?(x|twitter)\.com\/.+\/status(es)?\/\d+/i.test(pasted)) {
+                e.preventDefault();
+                setXUrl(pasted);
+                void runImport(pasted);
+              }
+            }}
+            placeholder="Paste a post link: https://x.com/you/status/…"
+            disabled={importing}
+            className={cn(input, "flex-1")}
+          />
+          <label className="flex shrink-0 items-center gap-2 text-[13px] text-text-secondary">
+            <input
+              type="checkbox"
+              checked={xFeatured}
+              onChange={(e) => setXFeatured(e.target.checked)}
+              className="size-4 accent-current"
+            />
+            Feature
+          </label>
+          <button
+            type="submit"
+            disabled={importing || !xUrl.trim()}
+            className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-text px-4 py-2.5 text-[13px] font-medium text-bg disabled:opacity-50"
+          >
+            {importing ? <Loader2 size={14} className="animate-spin" /> : null}
+            {importing ? "Importing…" : "Import"}
+          </button>
+        </form>
+        <p className="mt-2 px-1 text-xs text-text-tertiary">
+          Downloads the post&apos;s photos and videos at full quality and publishes them right away. The post
+          text becomes the title and summary, which you can edit below.
+        </p>
 
         {/* Drafts */}
         {drafts.length > 0 && (

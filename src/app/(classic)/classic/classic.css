@@ -1,0 +1,135 @@
+/*
+ * Styles for the classic portfolio (the original pratyush.dev design).
+ *
+ * Everything is scoped to `html:has(.classic-site)`, so it applies only while
+ * the classic page is on screen and can't leak into the new site after a
+ * client-side navigation. Scoping on <html> (not the wrapper) also covers
+ * dialogs that portal to <body>, like the design lightbox.
+ */
+
+/* Stone palette of the original site. --legacy-* feed the bg-*, text-* tokens
+   in globals.css; the shadcn tokens are overridden so shared components and
+   the page background match. */
+html:has(.classic-site) {
+  --legacy-bg: #fafaf9;
+  --legacy-bg-secondary: #f5f5f4;
+  --legacy-text: #1c1917;
+  --legacy-text-secondary: #57534e;
+  --legacy-text-tertiary: #a8a29e;
+  --background: #fafaf9;
+  --foreground: #1c1917;
+  --muted: #f5f5f4;
+  --muted-foreground: #57534e;
+  --border: #e7e5e4;
+
+  /* Hairline figures share the stone palette, with one emerald accent. */
+  --hairline-plate: var(--legacy-bg);
+  --hairline-hi: #059669;
+  --hairline-glyph: #8a817b;
+  --hairline-edge: #78716c;
+  --hairline-mid: #b5aea9;
+  --hairline-lo: #d6d3d1;
+  --hairline-stroke: 1.05;
+
+  scroll-behavior: smooth;
+  background-color: var(--legacy-bg);
+  text-rendering: optimizeLegibility;
+}
+
+html.dark:has(.classic-site) {
+  --legacy-bg: #0c0a09;
+  --legacy-bg-secondary: #141210;
+  --legacy-text: #fafaf9;
+  --legacy-text-secondary: #a8a29e;
+  --legacy-text-tertiary: #78716c;
+  --background: #0c0a09;
+  --foreground: #fafaf9;
+  --muted: #141210;
+  --muted-foreground: #a8a29e;
+  --border: #292524;
+
+  --hairline-hi: #34d399;
+  --hairline-glyph: #78716c;
+  --hairline-edge: #57534e;
+  --hairline-mid: #3a3633;
+  --hairline-lo: #292524;
+  --hairline-stroke: 0.9;
+}
+
+/* Plus Jakarta Sans body text. --classic-font-sans is set by the layout. */
+html:has(.classic-site),
+html:has(.classic-site) body {
+  font-family: var(--classic-font-sans), system-ui, sans-serif;
+  color: var(--legacy-text);
+}
+
+html:has(.classic-site) body {
+  background-color: var(--legacy-bg);
+}
+
+html:has(.classic-site) section[id],
+html:has(.classic-site) footer[id] {
+  scroll-margin-top: 5rem;
+}
+
+html:has(.classic-site) ::selection {
+  background: var(--legacy-text);
+  color: var(--legacy-bg);
+}
+
+html:has(.classic-site) :focus-visible {
+  outline: 1.5px solid var(--legacy-text);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.classic-site) {
+    scroll-behavior: auto;
+  }
+}
+
+/* Film grain over the whole page. */
+.classic-site .grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* A faint dot grid, faded at the edges: the paper the figures sit on. */
+.classic-site .dot-grid {
+  background-image: radial-gradient(var(--border) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 30%, transparent 75%);
+}
+
+/* Keycap legends: quiet until their key is chosen, then the accent. Unlayered
+   on purpose: the Hairline kernel injects an unlayered sheet. */
+.classic-site [data-hairline] > svg .glyph {
+  stroke: var(--hairline-glyph);
+  stroke-width: 1.1;
+}
+.classic-site [data-hairline] > svg .glyph.hi {
+  stroke: var(--hairline-hi);
+}
+
+/* Touch screens have no hover, so project previews scroll through the page on
+   their own, slowly, there and back. */
+@media (hover: none) and (prefers-reduced-motion: no-preference) {
+  .classic-site .preview-shot {
+    animation: classic-preview-scroll 14s ease-in-out 1.5s infinite alternate;
+  }
+}
+@keyframes classic-preview-scroll {
+  0%,
+  12% {
+    transform: translateY(0);
+  }
+  88%,
+  100% {
+    transform: translateY(var(--travel));
+  }
+}

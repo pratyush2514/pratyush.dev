@@ -84,6 +84,7 @@ export async function writeManifest(manifest: DesignManifest): Promise<void> {
   if (!res.ok) throw new Error(`Saving the design manifest failed: ${res.status} ${await res.text()}`);
   revalidateTag(DESIGNS_TAG, { expire: 0 });
   revalidatePath("/");
+  revalidatePath("/classic");
   revalidatePath("/design");
 }
 

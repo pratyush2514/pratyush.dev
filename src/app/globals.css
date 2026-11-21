@@ -54,11 +54,11 @@
   --animate-wave: wave .5s ease-in-out infinite;
   /* Tokens from the previous site, still used by the admin panel and the
      design gallery. Mapped onto the current palette so both themes work. */
-  --color-bg: var(--background);
-  --color-bg-secondary: var(--muted);
-  --color-text: var(--foreground);
-  --color-text-secondary: var(--muted-foreground);
-  --color-text-tertiary: color-mix(in oklab, var(--muted-foreground) 70%, transparent);
+  --color-bg: var(--legacy-bg, var(--background));
+  --color-bg-secondary: var(--legacy-bg-secondary, var(--muted));
+  --color-text: var(--legacy-text, var(--foreground));
+  --color-text-secondary: var(--legacy-text-secondary, var(--muted-foreground));
+  --color-text-tertiary: var(--legacy-text-tertiary, color-mix(in oklab, var(--muted-foreground) 70%, transparent));
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 

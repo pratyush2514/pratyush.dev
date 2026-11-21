@@ -1,5 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/admin/session";
+import {
+  CLASSIC_HOME_PATH,
+  SITE_SWITCHED_COOKIE,
+  SITE_SWITCH_PATH,
+  SITE_VERSION_COOKIE,
+  type SiteVersion,
+} from "@/lib/site-version";
 
 // --- Rate limiting for public API routes -----------------------------------
 // Best-effort token bucket, per function instance (module state is not shared
@@ -59,8 +66,39 @@ async function guardAdmin(req: NextRequest): Promise<NextResponse> {
   return res;
 }
 
+// --- Classic / new home page ------------------------------------------------
+// One URL, two home pages. Visitors see the classic portfolio until they pick
+// the new one; the choice lives in a cookie and the address bar never changes.
+const ONE_YEAR = 60 * 60 * 24 * 365;
+
+function switchVersion(req: NextRequest): NextResponse {
+  const version: SiteVersion = req.nextUrl.searchParams.get("v") === "new" ? "new" : "classic";
+  const res = NextResponse.redirect(new URL("/", req.url), 303);
+  const secure = req.nextUrl.protocol === "https:";
+  res.cookies.set(SITE_VERSION_COOKIE, version, { path: "/", maxAge: ONE_YEAR, sameSite: "lax", secure });
+  // Readable by the page, which counts the switch in analytics and clears it.
+  res.cookies.set(SITE_SWITCHED_COOKIE, version, { path: "/", maxAge: 60, sameSite: "lax", secure });
+  res.headers.set("Cache-Control", "private, no-store");
+  res.headers.set("X-Robots-Tag", "noindex");
+  return res;
+}
+
+function homeFor(req: NextRequest): NextResponse {
+  if (req.cookies.get(SITE_VERSION_COOKIE)?.value === "new") return NextResponse.next();
+  return NextResponse.rewrite(new URL(CLASSIC_HOME_PATH, req.url));
+}
+
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  if (pathname === SITE_SWITCH_PATH) return switchVersion(req);
+  if (pathname === "/") return homeFor(req);
+  // /classic is internal; a direct visit picks the classic version instead.
+  if (pathname === CLASSIC_HOME_PATH) {
+    const url = new URL(SITE_SWITCH_PATH, req.url);
+    url.searchParams.set("v", "classic");
+    return NextResponse.redirect(url, 307);
+  }
 
   // Rate-limit the public API surface. Admin routes are gated by session instead.
   if (pathname.startsWith("/api/") && !pathname.startsWith("/api/admin/")) {
@@ -85,5 +123,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/:path*", "/api/:path*"],
+  matcher: ["/", "/__site", "/classic", "/admin", "/admin/:path*", "/api/:path*"],
 };

@@ -1,7 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
-import { SITE } from "@/lib/site";
 import { SESSION_COOKIE, verifySessionToken } from "./session";
 
 export async function isAdmin(): Promise<boolean> {
@@ -28,10 +27,7 @@ export function sameOrigin(req: NextRequest): boolean {
   const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
   if (!origin || !host) return false;
   try {
-    const from = new URL(origin);
-    // The classic site on `main` can serve this deployment on the canonical
-    // domain, so the request arrives here under the deployment's own host.
-    return from.host === host || from.origin === new URL(SITE.url).origin;
+    return new URL(origin).host === host;
   } catch {
     return false;
   }

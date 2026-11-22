@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { ClassicHome } from "@/components/classic/classic-home";
 import { getDesigns } from "@/lib/designs/storage";
-import { orderForShowcase } from "@/lib/designs/types";
 import { SITE } from "@/lib/site";
 
 /*
@@ -39,6 +38,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ClassicPage() {
-  const designs = orderForShowcase(await getDesigns());
-  return <ClassicHome designs={designs.slice(0, 5)} designCount={designs.length} />;
+  // The gallery lives on its own page; the home page only needs to know it exists.
+  const designs = await getDesigns();
+  return <ClassicHome designCount={designs.length} />;
 }

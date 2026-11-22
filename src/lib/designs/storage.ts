@@ -85,6 +85,7 @@ export async function writeManifest(manifest: DesignManifest): Promise<void> {
   revalidateTag(DESIGNS_TAG, { expire: 0 });
   revalidatePath("/");
   revalidatePath("/classic");
+  revalidatePath("/interfaces");
   revalidatePath("/design");
 }
 

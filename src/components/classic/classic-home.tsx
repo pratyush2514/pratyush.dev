@@ -15,9 +15,8 @@ import { FloatingConsultButton } from "@/components/classic/floating-consult-but
 import { GitHubStreak } from "@/components/classic/github-streak";
 import { HairlineFigure } from "@/components/classic/hairline-figure";
 import { ProjectPreview } from "@/components/classic/project-preview";
-import { DesignGallery } from "@/components/design/design-gallery";
-import type { PublicDesign } from "@/lib/designs/types";
 import { SITE } from "@/lib/site";
+import { CLASSIC_DESIGN_PATH } from "@/lib/site-version";
 import { ClassicVersionSwitch } from "@/components/classic/version-switch";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
@@ -176,9 +175,9 @@ const toolbox = [
   { label: "Tools", items: ["Git", "Docker", "AWS", "Linux", "n8n", "CI/CD"] },
 ];
 
-const ALL_NAV = [
+const ALL_NAV: { id: string; label: string; href?: string }[] = [
   { id: "work", label: "Work" },
-  { id: "design", label: "Design" },
+  { id: "design", label: "Design", href: CLASSIC_DESIGN_PATH },
   { id: "about", label: "About" },
   { id: "experience", label: "Experience" },
   { id: "contact", label: "Contact" },
@@ -334,14 +333,15 @@ const CopyEmail = () => {
   );
 };
 
-export function ClassicHome({ designs, designCount }: { designs: PublicDesign[]; designCount: number }) {
-  // The Design section, and its nav link, appear once there is something to show.
-  const hasDesigns = designs.length > 0;
+export function ClassicHome({ designCount }: { designCount: number }) {
+  // The Design link (to its own page) appears once there is something to show.
+  const hasDesigns = designCount > 0;
   const NAV = useMemo(
     () => (hasDesigns ? ALL_NAV : ALL_NAV.filter((n) => n.id !== "design")),
     [hasDesigns],
   );
-  const num = (id: string) => String(NAV.findIndex((n) => n.id === id) + 1).padStart(2, "0");
+  const num = (id: string) =>
+    String(NAV.filter((n) => !n.href).findIndex((n) => n.id === id) + 1).padStart(2, "0");
   // The year is read on the client only, so a cached page never shows a stale one.
   const year = useSyncExternalStore(noopSubscribe, () => new Date().getFullYear(), () => null);
   const [active, setActive] = useState<string>("");
@@ -393,10 +393,10 @@ export function ClassicHome({ designs, designCount }: { designs: PublicDesign[];
               </a>
               <div className="flex items-center gap-1">
                 <ul className="hidden items-center sm:flex">
-                  {NAV.map(({ id, label }) => (
+                  {NAV.map(({ id, label, href }) => (
                     <li key={id}>
                       <a
-                        href={`#${id}`}
+                        href={href ?? `#${id}`}
                         aria-current={active === id ? "true" : undefined}
                         className={`rounded-full px-3.5 py-2 text-[13px] transition-colors duration-300 ${
                           active === id
@@ -447,10 +447,10 @@ export function ClassicHome({ designs, designCount }: { designs: PublicDesign[];
                   className="mt-2 w-full origin-top rounded-3xl border border-border/80 bg-bg/90 p-2 backdrop-blur-xl backdrop-saturate-150 sm:hidden"
                 >
                   <ul>
-                    {NAV.map(({ id, label }, i) => (
+                    {NAV.map(({ id, label, href }, i) => (
                       <li key={id}>
                         <a
-                          href={`#${id}`}
+                          href={href ?? `#${id}`}
                           onClick={() => setMenuOpen(false)}
                           className="flex items-baseline justify-between rounded-2xl px-4 py-3.5 transition-colors active:bg-bg-secondary"
                         >
@@ -551,13 +551,13 @@ export function ClassicHome({ designs, designCount }: { designs: PublicDesign[];
                   >
                     Book a call <ArrowUpRight size={15} />
                   </a>
-                  {designs.length > 0 && (
+                  {hasDesigns && (
                     <a
-                      href="#design"
+                      href={CLASSIC_DESIGN_PATH}
                       className="group -my-3 ml-1 inline-flex items-center gap-1.5 py-3 text-sm text-text-secondary transition-colors hover:text-text"
                     >
                       <span className="link-hover">I design interfaces too</span>
-                      <span className="transition-transform duration-300 group-hover:translate-y-0.5">↓</span>
+                      <span className="transition-transform duration-300 group-hover:translate-x-0.5">→</span>
                     </a>
                   )}
                 </m.div>
@@ -650,42 +650,6 @@ export function ClassicHome({ designs, designCount }: { designs: PublicDesign[];
               </ul>
             </m.div>
           </section>
-
-          {/* Design */}
-          {designs.length > 0 && (
-            <section id="design" className="mx-auto max-w-6xl px-6 py-20 md:px-10 md:py-32">
-              <SectionHead
-                index={num("design")}
-                label="UI / UX"
-                title={
-                  <>
-                    Interface <span className="italic text-text-secondary">craft</span>
-                  </>
-                }
-                aside={
-                  <p className="max-w-xs text-sm text-text-secondary">
-                    Screens, flows and motion I designed. Recordings play as you
-                    scroll; open any of them for the full view.
-                  </p>
-                }
-              />
-              <m.div {...fadeUp}>
-                <DesignGallery designs={designs} />
-              </m.div>
-              <m.div {...fadeUp} className="mt-14 flex justify-center md:mt-20">
-                <a
-                  href="/design"
-                  className="group inline-flex items-center gap-2 rounded-full border border-border px-5 py-3 text-sm font-medium transition-colors duration-300 hover:border-text-tertiary"
-                >
-                  {designCount > designs.length ? `See all ${designCount} designs` : "Open the design gallery"}
-                  <ArrowUpRight
-                    size={15}
-                    className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                  />
-                </a>
-              </m.div>
-            </section>
-          )}
 
           {/* About */}
           <section id="about" className="border-y border-border bg-bg-secondary">

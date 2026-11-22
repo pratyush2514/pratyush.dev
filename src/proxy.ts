@@ -5,6 +5,7 @@ import {
   SITE_SWITCHED_COOKIE,
   SITE_SWITCH_PATH,
   SITE_VERSION_COOKIE,
+  SWITCH_TARGETS,
   type SiteVersion,
 } from "@/lib/site-version";
 
@@ -73,7 +74,8 @@ const ONE_YEAR = 60 * 60 * 24 * 365;
 
 function switchVersion(req: NextRequest): NextResponse {
   const version: SiteVersion = req.nextUrl.searchParams.get("v") === "new" ? "new" : "classic";
-  const res = NextResponse.redirect(new URL("/", req.url), 303);
+  const next = req.nextUrl.searchParams.get("next") ?? "/";
+  const res = NextResponse.redirect(new URL(SWITCH_TARGETS.has(next) ? next : "/", req.url), 303);
   const secure = req.nextUrl.protocol === "https:";
   res.cookies.set(SITE_VERSION_COOKIE, version, { path: "/", maxAge: ONE_YEAR, sameSite: "lax", secure });
   // Readable by the page, which counts the switch in analytics and clears it.

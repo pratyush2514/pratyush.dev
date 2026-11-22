@@ -2,10 +2,12 @@ import { SITE_SWITCH_PATH } from "@/lib/site-version";
 
 /*
  * Switch to the new version of the site. The link hits the switch path in
- * src/proxy.ts, which sets the version cookie and sends the visitor back to
- * "/". A plain link, so it works without JavaScript.
+ * src/proxy.ts, which sets the version cookie and sends the visitor to `next`
+ * (the matching page on the new site). A plain link, so it works without
+ * JavaScript.
  */
-export function ClassicVersionSwitch() {
+export function ClassicVersionSwitch({ next = "/" }: { next?: string }) {
+  const href = `${SITE_SWITCH_PATH}?v=new${next === "/" ? "" : `&next=${encodeURIComponent(next)}`}`;
   return (
     <nav
       aria-label="Site version"
@@ -15,7 +17,7 @@ export function ClassicVersionSwitch() {
         Classic
       </span>
       <a
-        href={`${SITE_SWITCH_PATH}?v=new`}
+        href={href}
         className="rounded-full px-3 py-1.5 text-text-secondary transition-colors duration-300 hover:text-text"
       >
         New

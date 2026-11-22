@@ -119,7 +119,7 @@ export default async function Home() {
               </Suspense>
             );
           } else if (sectionId === "design") {
-            content = <DesignSection designs={designs.slice(0, 4)} total={designs.length} />;
+            content = <DesignSection designs={designs.slice(0, 10)} total={designs.length} />;
           } else {
             content = staticSections[sectionId];
           }

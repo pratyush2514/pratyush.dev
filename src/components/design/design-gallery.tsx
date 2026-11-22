@@ -2,7 +2,7 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Play, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PublicDesign } from "@/lib/designs/types";
 import { cn } from "@/lib/utils";
 import { DesignMedia } from "./design-media";
@@ -12,10 +12,13 @@ const KIND_LABEL = { video: "Motion", gif: "GIF", image: "" } as const;
 function DesignCard({
   design,
   hero,
+  compact,
   onOpen,
 }: {
   design: PublicDesign;
   hero?: boolean;
+  /** Smaller card with a fixed width, for the horizontal rail. */
+  compact?: boolean;
   onOpen: () => void;
 }) {
   const portrait = design.media.height / design.media.width > 1.1;
@@ -25,7 +28,11 @@ function DesignCard({
       type="button"
       onClick={onOpen}
       aria-label={`Open ${design.title}`}
-      className={cn("group block w-full text-left", hero && "sm:col-span-2")}
+      className={cn(
+        "group block text-left",
+        compact ? "w-[15.5rem] shrink-0 sm:w-[17rem]" : "w-full",
+        hero && "sm:col-span-2"
+      )}
     >
       <div className="relative overflow-hidden rounded-xl border border-border bg-bg-secondary shadow-[0_1px_0_0_var(--color-border),0_24px_48px_-24px_rgb(0_0_0/0.18)] transition-[transform,box-shadow] duration-700 ease-out-expo group-hover:-translate-y-1 group-hover:shadow-[0_1px_0_0_var(--color-border),0_40px_80px_-32px_rgb(0_0_0/0.28)]">
         {portrait && <div className="dot-grid absolute inset-0" aria-hidden="true" />}
@@ -53,9 +60,9 @@ function DesignCard({
           <ArrowUpRight size={16} aria-hidden="true" />
         </span>
       </div>
-      <div className="mt-4 flex items-baseline justify-between gap-4">
+      <div className={cn("flex items-baseline justify-between gap-4", compact ? "mt-3" : "mt-4")}>
         <div className="min-w-0">
-          <h3 className={cn("truncate font-serif tracking-tight", hero ? "text-3xl md:text-4xl" : "text-2xl")}>
+          <h3 className={cn("truncate font-serif tracking-tight", hero ? "text-3xl md:text-4xl" : compact ? "text-xl" : "text-2xl")}>
             {design.title}
           </h3>
           {design.category && <p className="mt-0.5 text-sm text-text-tertiary">{design.category}</p>}
@@ -67,6 +74,127 @@ function DesignCard({
         )}
       </div>
     </button>
+  );
+}
+
+/**
+ * A horizontal strip of cards. Scrolls sideways by dragging with the mouse or
+ * with the scroll wheel; touch and trackpads use native horizontal scrolling.
+ * A drag never counts as a click, so it doesn't open the lightbox by accident.
+ */
+function DesignRail({ designs, onOpen }: { designs: PublicDesign[]; onOpen: (i: number) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const drag = useRef({ active: false, startX: 0, startScroll: 0, moved: false });
+  const [dragging, setDragging] = useState(false);
+  const [edges, setEdges] = useState({ start: true, end: false });
+
+  const updateEdges = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    setEdges({ start: el.scrollLeft <= 2, end: el.scrollLeft >= max - 2 });
+  }, []);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    updateEdges();
+    const ro = new ResizeObserver(updateEdges);
+    ro.observe(el);
+
+    // Turn vertical wheel movement into sideways scrolling while there is
+    // room to move; at either end the page scrolls as usual.
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // zoom, or already horizontal
+      const max = el.scrollWidth - el.clientWidth;
+      if (max <= 0) return;
+      const atStart = el.scrollLeft <= 0 && e.deltaY < 0;
+      const atEnd = el.scrollLeft >= max - 1 && e.deltaY > 0;
+      if (atStart || atEnd) return;
+      e.preventDefault();
+      el.scrollLeft += e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      ro.disconnect();
+      el.removeEventListener("wheel", onWheel);
+    };
+  }, [updateEdges]);
+
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== "mouse" || e.button !== 0) return; // touch scrolls natively
+    const el = ref.current;
+    if (!el) return;
+    drag.current = { active: true, startX: e.clientX, startScroll: el.scrollLeft, moved: false };
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    const el = ref.current;
+    if (!d.active || !el) return;
+    const dx = e.clientX - d.startX;
+    if (!d.moved && Math.abs(dx) > 5) {
+      d.moved = true;
+      setDragging(true);
+      el.setPointerCapture(e.pointerId);
+    }
+    if (d.moved) el.scrollLeft = d.startScroll - dx;
+  };
+
+  const endDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = ref.current;
+    if (el?.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+    drag.current.active = false;
+    setDragging(false);
+  };
+
+  return (
+    <div className="relative">
+      <div
+        ref={ref}
+        role="region"
+        aria-label="UI / UX work. Drag or scroll sideways to see more."
+        tabIndex={0}
+        onScroll={updateEdges}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        // Swallow the click that ends a drag, so it doesn't open a card.
+        onClickCapture={(e) => {
+          if (drag.current.moved) {
+            e.preventDefault();
+            e.stopPropagation();
+            drag.current.moved = false;
+          }
+        }}
+        onDragStart={(e) => e.preventDefault()}
+        className={cn(
+          "flex gap-4 overflow-x-auto overscroll-x-contain pb-4 pt-1 no-scrollbar outline-none",
+          "focus-visible:ring-1 focus-visible:ring-ring",
+          dragging ? "cursor-grabbing select-none [&_*]:pointer-events-none" : "cursor-grab"
+        )}
+      >
+        {designs.map((d, i) => (
+          <DesignCard key={d.id} design={d} compact onOpen={() => onOpen(i)} />
+        ))}
+      </div>
+      {/* Soft fades hint that there is more to either side. */}
+      <div
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-background to-transparent transition-opacity duration-300",
+          edges.start ? "opacity-0" : "opacity-100"
+        )}
+      />
+      <div
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent transition-opacity duration-300",
+          edges.end ? "opacity-0" : "opacity-100"
+        )}
+      />
+    </div>
   );
 }
 
@@ -197,9 +325,12 @@ function Lightbox({
 export function DesignGallery({
   designs,
   filterable,
+  layout = "grid",
 }: {
   designs: PublicDesign[];
   filterable?: boolean;
+  /** "rail" is a single horizontal row of smaller cards. */
+  layout?: "grid" | "rail";
 }) {
   const [open, setOpen] = useState<number | null>(null);
   const [category, setCategory] = useState<string>("All");
@@ -235,11 +366,15 @@ export function DesignGallery({
           ))}
         </div>
       )}
-      <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 md:gap-x-8 md:gap-y-16">
-        {shown.map((d, i) => (
-          <DesignCard key={d.id} design={d} hero={i === 0} onOpen={() => setOpen(i)} />
-        ))}
-      </div>
+      {layout === "rail" ? (
+        <DesignRail designs={shown} onOpen={setOpen} />
+      ) : (
+        <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 md:gap-x-8 md:gap-y-16">
+          {shown.map((d, i) => (
+            <DesignCard key={d.id} design={d} hero={i === 0} onOpen={() => setOpen(i)} />
+          ))}
+        </div>
+      )}
       <Lightbox designs={shown} index={open} onChange={setOpen} />
     </>
   );

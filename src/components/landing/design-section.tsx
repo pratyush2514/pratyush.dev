@@ -18,12 +18,12 @@ export function DesignSection({
     <section className="no-js-visible border-t border-dashed pt-6">
       <h2 className="section-heading mb-3">Design</h2>
       <p className="px-6 pb-6 text-sm text-muted-foreground">
-        Screens, flows and motion I designed. Recordings play as you scroll; open
-        any of them for the full view.
+        Screens, flows and motion I designed. Drag or scroll sideways to browse;
+        click any piece for the full view.
       </p>
-      <div className="px-6 pb-6">
+      <div className="pb-2 pl-6">
         <MotionShell>
-          <DesignGallery designs={designs} />
+          <DesignGallery designs={designs} layout="rail" />
         </MotionShell>
       </div>
       <Link
